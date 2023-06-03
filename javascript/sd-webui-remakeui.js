@@ -1,13 +1,204 @@
-onUiLoaded(async () => {
-  async function sleep(timeout) {
+// @ts-check
+
+/** @dypedef { import("./types.d.ts").onUiLoaded }.onUiLoaded */
+
+class Core {
+  /**
+   * @param {number} timeout
+   * @return {Promise<void>}
+   */
+  static async sleep(timeout) {
     return new Promise((resolve) => setTimeout(resolve, timeout));
   }
 
+  /**
+   * @return {GradioApp}
+   */
+  static app() {
+    return gradioApp();
+  }
+
+  /**
+   * @param {string} id
+   * @return {HTMLElement}
+   */
+  static byId(id) {
+    const $ = this.app().getElementById(id);
+    if (!$) {
+      throw Error(`Unknown element by id. id = ${id}`);
+    }
+
+    return $;
+  }
+
+  /**
+   * @param {string} selector
+   * @param {HTMLElement | null} elem
+   * @return {HTMLElement}
+   */
+  static byQuery(selector, elem = null) {
+    /** @type {HTMLElement | null} */
+    let $ = null;
+    if (elem) {
+      $ = elem.querySelector(selector);
+    } else {
+      $ = this.app().querySelector(selector);
+    }
+
+    if (!$) {
+      throw Error(`Unknown element by query. query = ${selector}`);
+    }
+
+    return $;
+  }
+
+  /**
+   * @param {string} selector
+   * @param {HTMLElement | null} elem
+   * @return {NodeListOf<HTMLElement>}
+   */
+  static byQueryAll(selector, elem = null) {
+    if (elem) {
+      return elem.querySelectorAll(selector);
+    } else {
+      return this.app().querySelectorAll(selector);
+    }
+  }
+
+  /**
+   * @return {HTMLDivElement}
+   */
+  static div() {
+    return document.createElement('div');
+  }
+
+  /**
+   * @return {HTMLButtonElement}
+   */
+  static button() {
+    const $ = document.createElement('button');
+    $.classList.add('gr-button', 'gr-button-lg', 'gr-button-tool');
+    return $;
+  }
+
+  static iconButton() {}
+}
+
+class Texts {
+  static t = {
+    tagSelector: {
+      open: '🏷',
+    },
+    pngDropBackup: {
+      restore: '♻️',
+    },
+  };
+}
+
+class Executor {
+  /**
+   * @return {void}
+   */
+  exec() {}
+}
+
+class Txt2ImgTopExecutor extends Executor {
+  /**
+   * @return {void}
+   * @override
+   */
+  exec() {
+    const $txt2img = Core.byId('tab_txt2img');
+    const $top = Core.byQuery('div', $txt2img);
+    const $result = Core.byQuery('#txt2img_results', $top);
+
+    const $container = Core.div();
+    $container.className = 'flex row';
+    $container.appendChild($top);
+    $container.appendChild($result);
+
+    $txt2img?.appendChild($container);
+  }
+}
+
+class AlignToolsExecutor extends Executor {
+  /**
+   * @return {void}
+   * @override
+   */
+  exec() {
+    const $open = Core.byId('txt2img_open_tag_selector');
+    $open.textContent = Texts.t.tagSelector.open;
+
+    const $tools = Core.byId('txt2img_tools');
+    $tools.appendChild($open);
+  }
+}
+
+class HideToolsExecutor extends Executor {
+  /**
+   * @return {void}
+   * @override
+   */
+  exec() {
+    Core.byId('txt2img_clear_prompt').style.display = 'none';
+    Core.byId('txt2img_style_apply').style.display = 'none';
+    Core.byId('txt2img_style_create').style.display = 'none';
+    Core.byId('txt2img_styles_row').style.display = 'none';
+  }
+}
+
+class PngDropBackupExecutor extends Executor {
+  /**
+   * @return {void}
+   * @override
+   */
+  exec() {
+    const $backup = Core.div();
+    $backup.id = 'txt2img_prompt_backup';
+    $backup.style.display = 'none';
+
+    const $restore = Core.button();
+    $restore.textContent = Texts.t.pngDropBackup.restore;
+    $restore.addEventListener('click', () => {
+      const $prompt = Core.byId('txt2img_prompt');
+      /** @type {HTMLTextAreaElement} */
+      const $textarea = Core.byQuery('textarea', $prompt);
+      $textarea.value = $backup.textContent || '';
+    });
+
+    const $prompt = Core.byId('txt2img_prompt');
+    $prompt.addEventListener('drop', () => {
+      /** @type {HTMLTextAreaElement} */
+      const $textarea = Core.byQuery('textarea', $prompt);
+      const $backup = Core.byId('txt2img_prompt_backup');
+      $backup.textContent = $textarea.value;
+    });
+
+    const $container = Core.div();
+    $container.classList.add('flex', 'row', 'flex-wrap', 'gap-1');
+    $container.style.position = 'absolute';
+    $container.style.right = '0px';
+    $container.style.bottom = '-12px';
+    $container.style['min-width'] = 'min(40px, 100%)';
+    $container.style['z-index'] = 100;
+    $container.appendChild($restore);
+    $container.appendChild($backup);
+
+    const $genTools = Core.byId('txt2img_new_gen_tools');
+    $genTools.after($container);
+  }
+}
+
+onUiLoaded(async () => {
+  /**
+   * @return {Promise<void>}
+   */
   async function waitUntilLoaded() {
     while(true) {
       console.log('...wait until ui loaded');
 
-      await sleep(100);
+      await Core.sleep(100);
 
       if (gradioApp().getElementById('interactive-tag-selector')) {
         break;
@@ -17,20 +208,17 @@ onUiLoaded(async () => {
     console.log('ui load completed!');
   }
 
+  /**
+   * @return {void}
+   */
   function remakeUI() {
     console.log('remake ui start!');
 
+    /**
+     * @return {void}
+     */
     function alignTop() {
-      const txt2img = gradioApp().getElementById('tab_txt2img');
-      const top = txt2img.querySelector('div');
-      const result = top.querySelector('#txt2img_results');
-
-      const container = document.createElement('div');
-      container.className = 'flex row';
-      container.appendChild(top);
-      container.appendChild(result);
-
-      txt2img.appendChild(container);
+      new Txt2ImgTopExecutor().exec();
     }
 
     function leaveGenButton($button) {
@@ -137,45 +325,38 @@ onUiLoaded(async () => {
         $skip: gradioApp().getElementById('txt2img_skip'),
       };
 
-      const $tools = gradioApp().getElementById('txt2img_tools');
       const $genButton = remakeGen(buttons);
-      $tools.appendChild($genButton);
-      $tools.appendChild(remakeStop(buttons, $genButton));
-      $tools.appendChild(remakeSkip(buttons, $genButton));
+
+      const $container = document.createElement('div');
+      $container.id = 'txt2img_new_gen_tools';
+      $container.classList.add('flex', 'row', 'flex-wrap', 'gap-1');
+      $container.style.position = 'absolute';
+      $container.style.right = '100px';
+      $container.style.top = '-12px';
+      $container.style['min-width'] = 'min(120px, 100%)';
+      $container.style['z-index'] = 100;
+      $container.appendChild($genButton);
+      $container.appendChild(remakeStop(buttons, $genButton));
+      $container.appendChild(remakeSkip(buttons, $genButton));
+
       leaveGenButton(buttons.$gen);
       leaveGenButton(buttons.$stop);
       leaveGenButton(buttons.$skip);
+
+      const $counter = gradioApp().getElementById('txt2img_token_counter');
+      $counter.after($container);
+    }
+
+    function addPngDropBackup() {
+      new PngDropBackupExecutor().exec();
     }
 
     function alignTools() {
-      // const genButton = gradioApp().getElementById('txt2img_generate');
-      // const stopButton = gradioApp().getElementById('txt2img_interrupt');
-      // const skipButton = gradioApp().getElementById('txt2img_skip');
-      // genButton.className = 'gr-button gr-button-lg gr-button-tool';
-      // genButton.textContent = '▶️️';
-      // genButton.style = 'min-height: initial';
-      // stopButton.textContent = '❌';
-      // stopButton.className = 'gr-button gr-button-lg gr-button-tool';
-      // stopButton.style = 'min-height: initial; position: initial; width: initial; height: initial; background: initial; border-radius: 0.5rem;';
-      // skipButton.textContent = '➖';
-      // skipButton.className = 'gr-button gr-button-lg gr-button-tool';
-      // skipButton.style = 'min-height: initial; position: initial; width: initial; height: initial; background: initial; border-radius: 0.5rem;';
-
-      const tagSelectorButton = gradioApp().getElementById('txt2img_open_tag_selector');
-      tagSelectorButton.textContent = '🏷';
-
-      const $tools = gradioApp().getElementById('txt2img_tools');
-      $tools.appendChild(tagSelectorButton);
-      // $tools.appendChild(genButton);
-      // $tools.appendChild(stopButton);
-      // $tools.appendChild(skipButton);
+      new AlignToolsExecutor().exec();
     }
 
     function hideTools() {
-      gradioApp().getElementById('txt2img_clear_prompt').style.display = 'none';
-      gradioApp().getElementById('txt2img_style_apply').style.display = 'none';
-      gradioApp().getElementById('txt2img_style_create').style.display = 'none';
-      gradioApp().getElementById('txt2img_styles_row').style.display = 'none';
+      new HideToolsExecutor().exec();
     }
 
     function alignSettings() {
@@ -378,7 +559,6 @@ onUiLoaded(async () => {
       refresh();
       subDirs();
       sort();
-      remakeGenTools();
     }
 
     alignTop();
@@ -388,6 +568,8 @@ onUiLoaded(async () => {
     hideSettings();
     alignTagSelector();
     remakeLora();
+    remakeGenTools();
+    addPngDropBackup();
 
     console.log('remake ui successfull!');
   }
