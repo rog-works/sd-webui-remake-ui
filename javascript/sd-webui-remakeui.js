@@ -1075,4 +1075,4 @@ onUiLoaded(async () => {
 
   await waitUntilLoaded();
   main();
-})
+});
