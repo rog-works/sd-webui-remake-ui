@@ -1,7 +1,7 @@
 // @ts-check
 
-/** @dypedef { import("./types.d.ts").onUiLoaded }.onUiLoaded */
-/** @dypedef { import("./types.d.ts").GradioApp }.GradioApp */
+/** @type { import("./types").onUiLoaded } */
+/** @type { import("./types").GradioApp } */
 
 onUiLoaded(async () => {
   class Core {
@@ -156,7 +156,6 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLElement} $
-     * @return {void}
      */
     static hidden($) {
       $.style.display = 'none';
@@ -164,7 +163,6 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLButtonElement} $button
-     * @return {void}
      */
     static leaveButton($button) {
       $button.textContent = '';
@@ -222,6 +220,13 @@ onUiLoaded(async () => {
   }
 
   class Modules {
+    /**
+     * @return {Boolean}
+     */
+    static get already() {
+      return Finder.exists('interactive-tag-selector');
+    }
+
     /** @return {HTMLElement} */
     static get pain() { return Finder.by('tab_txt2img'); }
 
@@ -286,7 +291,7 @@ onUiLoaded(async () => {
     static get extraNetworksRefresh() { return Finder.by('txt2img_extra_close').nextElementSibling; }
 
     /** @return {HTMLTextAreaElement} */ // @ts-ignore
-    static get extraNetworksSearchText() { return Finder.query('#txt2img_extra_tabs > div > textarea');; }
+    static get extraNetworksSearchText() { return Finder.query('#txt2img_extra_tabs > div > textarea'); }
 
     /** @return {HTMLElement} */
     static get loraCards() { return Finder.by('txt2img_lora_cards'); }
@@ -326,15 +331,11 @@ onUiLoaded(async () => {
   }
 
   class Executor {
-    /**
-     * @return {void}
-     */
     exec() {}
   }
 
   class Txt2ImgTopExecutor extends Executor {
     /**
-     * @return {void}
      * @override
      */
     exec() {
@@ -353,7 +354,6 @@ onUiLoaded(async () => {
 
   class AlignToolsExecutor extends Executor {
     /**
-     * @return {void}
      * @override
      */
     exec() {
@@ -366,7 +366,6 @@ onUiLoaded(async () => {
 
   class HideToolsExecutor extends Executor {
     /**
-     * @return {void}
      * @override
      */
     exec() {
@@ -381,7 +380,6 @@ onUiLoaded(async () => {
     /** @typedef {{$gen: HTMLButtonElement, $stop: HTMLButtonElement, $skip: HTMLButtonElement}} OrgButtons */
 
     /**
-     * @return {void}
      * @override
      */
     exec() {
@@ -421,7 +419,7 @@ onUiLoaded(async () => {
         $button.classList.add('disabled', 'dark');
       });
       Helper.handleDisplayChanged(orgButtons.$stop, visibled => {
-        if (visibled) {
+        if (!visibled) {
           $button.disabled = false;
           $button.classList.remove('disabled', 'dark');
         }
@@ -489,7 +487,6 @@ onUiLoaded(async () => {
 
   class PngDropBackupExecutor extends Executor {
     /**
-     * @return {void}
      * @override
      */
     exec() {
@@ -527,7 +524,6 @@ onUiLoaded(async () => {
 
   class AlignSettingsExecutor extends Executor {
     /**
-     * @return {void}
      * @override
      */
     exec() {
@@ -552,7 +548,6 @@ onUiLoaded(async () => {
 
   class HideSettingsExecutor extends Executor {
     /**
-     * @return {void}
      * @override
      */
     exec() {
@@ -562,7 +557,6 @@ onUiLoaded(async () => {
 
   class AlignTagSelectorExecutor extends Executor {
     /**
-     * @return {void}
      * @override
      */
     exec() {
@@ -577,7 +571,6 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @return {void}
      * @override
      */
     exec() {
@@ -591,16 +584,16 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @return {void}
      * @access private
      */
     reload() {
+      this.imageHover();
       this.cards();
       this.subDirs();
+      this.sort();
     }
 
     /**
-     * @return {void}
      * @access private
      */
     handleMouse() {
@@ -611,15 +604,14 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @return {void}
      * @access private
      */
     imageHover() {
       const $hover = Helper.div();
       $hover.id = NewModules.ids.loraCardHover;
       $hover.style.position = 'fixed';
-      Helper.hidden($hover);
       $hover.style['z-index'] = 1000;
+      Helper.hidden($hover);
 
       const $image = Helper.img();
       $hover.appendChild($image);
@@ -629,7 +621,6 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLElement} $model
-     * @return {void}
      * @access private
      */
     hoverShow($model) {
@@ -646,7 +637,6 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @return {void}
      * @access private
      */
     hoverHide() {
@@ -654,7 +644,6 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @return {void}
      * @access private
      */
     cards() {
@@ -679,32 +668,37 @@ onUiLoaded(async () => {
       $img.style.height = 'auto';
 
       const $imgBox = Helper.div();
-      $imgBox.style.width = '25px';
-      $imgBox.style.height = 'auto';
+      $imgBox.style['flex-basis'] = '10%';
       $imgBox.appendChild($img);
 
       const $path = Helper.div();
       $path.textContent = Finder.query('.actions > .name', $card).textContent;
+      $path.style['text-align'] = 'left';
+      $path.style['flex-basis'] = '50%';
 
       const $actions = Finder.query('.actions > .additional', $card);
+      $actions.style['flex-basis'] = '40%';
 
       const timeMatches = $img.src.match(/mtime=(\d+)/);
       const timestamp = timeMatches ? parseInt(timeMatches[1]) : 0;
 
       const $model = Helper.div();
-      $model.classList.add('flex', 'row', 'w-full', 'gr-button', 'gr-button-primary', 'lora_model');
+      $model.classList.add('flex', 'w-2/4', 'gr-button', 'gr-button-primary', 'lora_model');
       $model.dataset.timestamp = `${timestamp}`;
       $model.appendChild($imgBox);
       $model.appendChild($path);
       $model.appendChild($actions);
       $model.addEventListener('click', () => { $card.click(); });
-      $model.addEventListener('mouseenter', e => { this.hoverShow(e.target); });
+      $model.addEventListener('mouseenter', e => {
+        /** @type {HTMLElement} */ // @ts-ignore
+        const target = e?.target;
+        this.hoverShow(target);
+      });
       $model.addEventListener('mouseleave', () => { this.hoverHide(); });
       return $model;
     }
 
     /**
-     * @return {void}
      * @access private
      */
     search() {
@@ -728,24 +722,23 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @return {void}
      * @access private
      */
     refresh() {
-      this;
       Modules.extraNetworksRefresh.addEventListener('click', () => { this.reload(); });
     }
 
     /**
-     * @return {void}
      * @access private
      */
     subDirs() {
       const $container = Modules.loraSubDirs;
       const $selectBox = Helper.select();
       $selectBox.addEventListener('change', e => {
+        /** @type {HTMLTextAreaElement} */ // @ts-ignore
+        const target = e?.target;
         for (const $dir of Finder.queryAll('button', $container)) {
-          if ($dir.textContent === e?.target?.value) {
+          if ($dir.textContent === target.value) {
             $dir.click();
           }
         }
@@ -764,7 +757,6 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @return {void}
      * @access private
      */
     sort() {
@@ -780,7 +772,9 @@ onUiLoaded(async () => {
       Modules.loraSubDirs.appendChild($label);
 
       $checkBox.addEventListener('change', e => {
-        const newest = e?.target?.checked;
+        /** @type {HTMLInputElement} */ // @ts-ignore
+        const target = e?.target;
+        const newest = target.checked;
         const $container = Modules.loraCards;
         /** @type {{timestamp: string, term: string, elem: HTMLElement}[]} */
         const items = [];
@@ -813,7 +807,7 @@ onUiLoaded(async () => {
 
       await Core.sleep(100);
 
-      if (Finder.exists('interactive-tag-selector')) {
+      if (Modules.already) {
         break;
       }
     }
@@ -827,15 +821,20 @@ onUiLoaded(async () => {
   function main() {
     console.log('remake ui start!');
 
-    new Txt2ImgTopExecutor().exec();
-    new AlignToolsExecutor().exec();
-    new HideToolsExecutor().exec();
-    new AlignSettingsExecutor().exec();
-    new HideSettingsExecutor().exec();
-    new AlignTagSelectorExecutor().exec();
-    new LoraExecutor().exec();
-    new NewGenToolsExecutor().exec();
-    new PngDropBackupExecutor().exec();
+    const execs = [
+      Txt2ImgTopExecutor,
+      AlignToolsExecutor,
+      HideToolsExecutor,
+      AlignSettingsExecutor,
+      HideSettingsExecutor,
+      AlignTagSelectorExecutor,
+      LoraExecutor,
+      NewGenToolsExecutor,
+      PngDropBackupExecutor,
+    ];
+    for (const ctor of execs) {
+      new ctor().exec();
+    }
 
     console.log('remake ui successfull!');
   }
