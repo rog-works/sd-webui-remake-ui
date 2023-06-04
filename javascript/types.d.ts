@@ -6,3 +6,4 @@ interface GradioApp {
 
 declare function onUiLoaded(callback: () => Promise<void>): void;
 declare function gradioApp(): GradioApp;
+declare function updateInput(HTMLTextAreaElement: textarea): void;

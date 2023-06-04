@@ -203,7 +203,7 @@ onUiLoaded(async () => {
         open: '🏷',
       },
       pngDropBackup: {
-        restore: '♻️',
+        restore: '↩️️',
       },
       newGenTools: {
         gen: '▶️️',
@@ -501,6 +501,7 @@ onUiLoaded(async () => {
         /** @type {HTMLTextAreaElement} */ // @ts-ignore
         const $textarea = Finder.query('textarea', $prompt);
         $textarea.value = $backup.textContent || '';
+        updateInput($textarea);
       });
 
       const $prompt = Modules.prompt;
