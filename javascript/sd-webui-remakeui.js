@@ -221,122 +221,179 @@ onUiLoaded(async () => {
 
   class Modules {
     /**
+     * @param {'txt2img' | 'img2img'} mode
+     */
+    constructor(mode) {
+      this._mode = mode;
+    }
+
+    /**
      * @return {Boolean}
      */
     static get already() {
       return Finder.exists('interactive-tag-selector');
     }
 
-    /** @return {HTMLElement} */
-    static get pain() { return Finder.by('tab_txt2img'); }
+    /**
+     * @param {string} id
+     * @return {string}
+     * @access private
+     */
+    id(id) {
+      return this._mode === 'txt2img' ? id : id.replace('txt2img', this._mode);
+    }
 
     /** @return {HTMLElement} */
-    static get prompt() { return Finder.by('txt2img_prompt'); }
+    get pain() { return Finder.by(this.id('tab_txt2img')); }
 
     /** @return {HTMLElement} */
-    static get results() { return Finder.by('txt2img_results'); }
+    get prompt() { return Finder.by(this.id('txt2img_prompt')); }
 
     /** @return {HTMLElement} */
-    static get tokenCounter() { return Finder.by('txt2img_token_counter'); }
+    get results() { return Finder.by(this.id('txt2img_results')); }
+
+    /** @return {HTMLElement} */
+    get tokenCounter() { return Finder.by(this.id('txt2img_token_counter')); }
 
     /** @return {HTMLButtonElement} */ // @ts-ignore
-    static get genButton() { return Finder.by('txt2img_generate'); }
+    get genButton() { return Finder.by(this.id('txt2img_generate')); }
 
     /** @return {HTMLButtonElement} */ // @ts-ignore
-    static get stopButton() { return Finder.by('txt2img_interrupt'); }
+    get stopButton() { return Finder.by(this.id('txt2img_interrupt')); }
 
     /** @return {HTMLButtonElement} */ // @ts-ignore
-    static get skipButton() { return Finder.by('txt2img_skip'); }
+    get skipButton() { return Finder.by(this.id('txt2img_skip')); }
 
     /** @return {HTMLElement} */
-    static get toolsContainer() { return Finder.by('txt2img_actions_column'); }
+    get img2imgModes() { return Finder.by(this.id('mode_img2img')); }
 
     /** @return {HTMLElement} */
-    static get tools() { return Finder.by('txt2img_tools'); }
+    get img2imgInterrogates() { return Finder.by(this.id('interrogate_col')); }
 
     /** @return {HTMLElement} */
-    static get toolsPaste() { return Finder.query('#paste', this.tools); }
+    get toolsContainer() { return Finder.by(this.id('txt2img_actions_column')); }
 
     /** @return {HTMLElement} */
-    static get toolsClearPrompt() { return Finder.by('txt2img_clear_prompt'); }
+    get tools() { return Finder.by(this.id('txt2img_tools')); }
 
     /** @return {HTMLElement} */
-    static get toolsStyleSelect() { return Finder.by('txt2img_styles_row'); }
+    get toolsPaste() { return Finder.query(this.id('#paste'), this.tools); }
 
     /** @return {HTMLElement} */
-    static get toolsStyleApply() { return Finder.by('txt2img_style_apply'); }
+    get toolsClearPrompt() { return Finder.by(this.id('txt2img_clear_prompt')); }
 
     /** @return {HTMLElement} */
-    static get toolsStyleCreate() { return Finder.by('txt2img_style_create'); }
+    get toolsStyleSelect() { return Finder.by(this.id('txt2img_styles_row')); }
 
     /** @return {HTMLElement} */
-    static get sampler() { return Finder.by('sampler_selection_txt2img'); }
+    get toolsStyleApply() { return Finder.by(this.id('txt2img_style_apply')); }
 
     /** @return {HTMLElement} */
-    static get steps() { return Finder.by('txt2img_steps'); }
+    get toolsStyleCreate() { return Finder.by(this.id('txt2img_style_create')); }
 
     /** @return {HTMLElement} */
-    static get seedContainer() { return Finder.by('txt2img_seed_row'); }
+    get sampler() { return Finder.by(this.id('sampler_selection_txt2img')); }
 
     /** @return {HTMLElement} */
-    static get seedExtra() { return Finder.by('txt2img_subseed_show_box'); }
+    get steps() { return Finder.by(this.id('txt2img_steps')); }
 
     /** @return {HTMLElement} */
-    static get cfgScale() { return Finder.by('txt2img_cfg_scale'); }
+    get seedContainer() { return Finder.by(this.id('txt2img_seed_row')); }
 
     /** @return {HTMLElement} */
-    static get settings() { return Finder.by('txt2img_settings'); }
+    get seedExtra() { return Finder.by(this.id('txt2img_subseed_show_box')); }
 
     /** @return {HTMLElement} */
-    static get hiresFix() { return Finder.by('txt2img_hires_fix'); }
+    get cfgScale() { return Finder.by(this.id('txt2img_cfg_scale')); }
 
     /** @return {HTMLElement} */
-    static get extraNetworks() { return Finder.by('txt2img_extra_networks'); }
+    get settings() { return Finder.by(this.id('txt2img_settings')); }
+
+    /** @return {HTMLElement} @access private */
+    get hiresFix() { return Finder.by('txt2img_hires_fix'); }
+
+    /** @return {HTMLElement} @access private */
+    get img2imgDenoiseStrength() { return Finder.by('img2img_denoising_strength'); }
+
+    /** @return {HTMLElement} */
+    get hiresFixOrDenoiseStrength() { return this._mode === 'txt2img' ? this.hiresFix : this.img2imgDenoiseStrength; } // XXX 互換性が無いUI
+
+    /** @return {HTMLElement} */
+    get extraNetworks() { return Finder.by(this.id('txt2img_extra_networks')); }
 
     /** @return {HTMLElement} */ // @ts-ignore
-    static get extraNetworksRefresh() { return Finder.by('txt2img_extra_close').nextElementSibling; }
+    get extraNetworksRefresh() { return Finder.by(this.id('txt2img_extra_close')).nextElementSibling; }
 
     /** @return {HTMLTextAreaElement} */ // @ts-ignore
-    static get extraNetworksSearchText() { return Finder.query('#txt2img_extra_tabs > div > textarea'); }
+    get extraNetworksSearchText() { return Finder.query(this.id('#txt2img_extra_tabs > div > textarea')); }
 
     /** @return {HTMLElement} */
-    static get loraCards() { return Finder.by('txt2img_lora_cards'); }
+    get loraCards() { return Finder.by(this.id('txt2img_lora_cards')); }
 
     /** @return {HTMLElement} */
-    static get loraSubDirs() { return Finder.by('txt2img_lora_subdirs'); }
+    get loraSubDirs() { return Finder.by(this.id('txt2img_lora_subdirs')); }
 
     /** @return {HTMLElement} */
-    static get scripts() { return Finder.by('txt2img_script_container'); }
+    get scripts() { return Finder.by(this.id('txt2img_script_container')); }
 
     /** @return {HTMLElement} */
-    static get tagSelectorContainer() { return Finder.by('interactive-tag-selector'); }
+    get tagSelectorContainer() { return Finder.by(this.id('interactive-tag-selector')); }
 
     /** @return {HTMLElement} */
-    static get tagSelectorButton() { return Finder.by('txt2img_open_tag_selector'); }
+    get tagSelectorButton() { return Finder.by(this.id('txt2img_open_tag_selector')); }
   }
 
   class NewModules {
-    static ids = {
-      genTools: 'txt2img_new_gen_tools',
-      promptBackup: 'txt2img_prompt_backup',
-      seedStepsCfgContainer: 'txt2img_seed_steps_cfg_settings',
-      loraCardHover: 'txt2img_lora_card_hover',
-    };
+    /**
+     * @param {'txt2img' | 'img2img'} mode
+     */
+    constructor(mode) {
+      this._mode = mode;
+    }
+
+    /**
+     * @param {string} id
+     * @return {string}
+     * @access private
+     */
+    id(id) {
+      return this._mode === 'txt2img' ? id : id.replace('txt2img', this._mode);
+    }
+
+    /** @return {string} */
+    get genToolsId() { return this.id('txt2img_new_gen_tools'); }
+
+    /** @return {string} */
+    get promptBackupId() { return this.id('txt2img_prompt_backup'); }
+
+    /** @return {string} */
+    get seedStepsCfgContainerId() { return this.id('txt2img_seed_steps_cfg_settings'); }
+
+    /** @return {string} */
+    get loraCardHoverId() { return this.id('txt2img_lora_card_hover'); }
 
     /** @return {HTMLElement} */
-    static get genTools() { return Finder.by(this.ids.genTools); }
+    get genTools() { return Finder.by(this.genToolsId); }
 
     /** @return {HTMLElement} */
-    static get promptBackup() { return Finder.by(this.ids.promptBackup); }
+    get promptBackup() { return Finder.by(this.promptBackupId); }
 
     /** @return {HTMLElement} */
-    static get seedStepsCfgContainer() { return Finder.by(this.ids.seedStepsCfgContainer); }
+    get seedStepsCfgContainer() { return Finder.by(this.seedStepsCfgContainerId); }
 
     /** @return {HTMLElement} */
-    static get loraCardHover() { return Finder.by(this.ids.loraCardHover); }
+    get loraCardHover() { return Finder.by(this.loraCardHoverId); }
   }
 
   class Executor {
+    /**
+     * @param {'txt2img' | 'img2img'} mode
+     */
+    constructor(mode) {
+      this.modules = new Modules(mode);
+      this.newModules = new NewModules(mode);
+    }
+
     exec() {}
   }
 
@@ -345,9 +402,9 @@ onUiLoaded(async () => {
      * @override
      */
     exec() {
-      const $pain = Modules.pain;
+      const $pain = this.modules.pain;
       const $top = Finder.query('div', $pain);
-      const $result = Modules.results;
+      const $result = this.modules.results;
 
       const $container = Helper.div();
       $container.classList.add('flex', 'row');
@@ -358,15 +415,33 @@ onUiLoaded(async () => {
     }
   }
 
-  class AlignToolsExecutor extends Executor {
+  class Img2ImgTopExecutor extends Executor {
     /**
      * @override
      */
     exec() {
-      const $open = Modules.tagSelectorButton;
-      $open.textContent = I18n.t.tagSelector.open;
+      const $pain = this.modules.pain;
+      const $top = Finder.query('div', $pain);
 
-      Modules.tools.appendChild($open);
+      const $modes = this.modules.img2imgModes;
+      const $result = this.modules.results;
+      $modes.appendChild($result);
+
+      const $container = Helper.div();
+      $container.classList.add('flex', 'row');
+      $container.appendChild($top);
+      $container.appendChild($modes);
+
+      $pain.appendChild($container);
+    }
+  }
+
+  class Img2ImgHideTools extends Executor {
+    /**
+     * @override
+     */
+    exec() {
+      Helper.hide(this.modules.img2imgInterrogates);
     }
   }
 
@@ -375,10 +450,10 @@ onUiLoaded(async () => {
      * @override
      */
     exec() {
-      Helper.hide(Modules.toolsClearPrompt);
-      Helper.hide(Modules.toolsStyleApply);
-      Helper.hide(Modules.toolsStyleCreate);
-      Helper.hide(Modules.toolsStyleSelect);
+      Helper.hide(this.modules.toolsClearPrompt);
+      Helper.hide(this.modules.toolsStyleApply);
+      Helper.hide(this.modules.toolsStyleCreate);
+      Helper.hide(this.modules.toolsStyleSelect);
     }
   }
 
@@ -387,22 +462,22 @@ onUiLoaded(async () => {
      * @override
      */
     exec() {
-      const $toolsContainer = Modules.toolsContainer;
-      Modules.sampler.appendChild($toolsContainer);
+      const $toolsContainer = this.modules.toolsContainer;
+      this.modules.sampler.appendChild($toolsContainer);
 
       const $container = Helper.div();
-      $container.id = NewModules.ids.seedStepsCfgContainer;
+      $container.id = this.newModules.seedStepsCfgContainerId;
       $container.classList.add('flex', 'row', 'w-full', 'flex-wrap', 'gap-4');
-      $container.appendChild(Modules.seedContainer);
-      $container.appendChild(Modules.steps);
-      $container.appendChild(Modules.cfgScale);
+      $container.appendChild(this.modules.seedContainer);
+      $container.appendChild(this.modules.steps);
+      $container.appendChild(this.modules.cfgScale);
 
-      const $settings = Modules.settings;
+      const $settings = this.modules.settings;
       $settings.style['padding-top'] = 'initial';
       $settings.appendChild($container);
-      $settings.appendChild(Modules.hiresFix);
-      $settings.appendChild(Modules.extraNetworks);
-      $settings.appendChild(Modules.scripts);
+      $settings.appendChild(this.modules.hiresFixOrDenoiseStrength); // XXX 互換性が無いUI
+      $settings.appendChild(this.modules.extraNetworks);
+      $settings.appendChild(this.modules.scripts);
     }
   }
 
@@ -411,7 +486,7 @@ onUiLoaded(async () => {
      * @override
      */
     exec() {
-      Helper.hide(Modules.seedExtra);
+      Helper.hide(this.modules.seedExtra);
     }
   }
 
@@ -420,13 +495,35 @@ onUiLoaded(async () => {
      * @override
      */
     exec() {
-      Modules.hiresFix.after(Modules.tagSelectorContainer);
+      this.alignOpen();
+      this.alignContainer();
+    }
+
+    /**
+     * @access private
+     */
+    alignOpen() {
+      const $open = this.modules.tagSelectorButton;
+      $open.textContent = I18n.t.tagSelector.open;
+
+      this.modules.tools.appendChild($open);
+    }
+
+    /**
+     * @access private
+     */
+    alignContainer() {
+      this.modules.hiresFix.after(this.modules.tagSelectorContainer);
     }
   }
 
   class LoraExecutor extends Executor {
-    constructor() {
-      super();
+    /**
+     * @param {'txt2img' | 'img2img'} mode
+     * @override
+     */
+    constructor(mode) {
+      super(mode);
       this.mouse = { x: 0, y: 0 };
     }
 
@@ -468,7 +565,7 @@ onUiLoaded(async () => {
      */
     imageViewer() {
       const $hover = Helper.div();
-      $hover.id = NewModules.ids.loraCardHover;
+      $hover.id = this.newModules.loraCardHoverId;
       $hover.style.position = 'fixed';
       $hover.style['z-index'] = 1000;
       Helper.hide($hover);
@@ -476,7 +573,7 @@ onUiLoaded(async () => {
       const $image = Helper.img();
       $hover.appendChild($image);
 
-      Modules.loraCards.appendChild($hover);
+      this.modules.loraCards.appendChild($hover);
     }
 
     /**
@@ -484,7 +581,7 @@ onUiLoaded(async () => {
      * @access private
      */
     viewerShow($model) {
-      const $hover = NewModules.loraCardHover;
+      const $hover = this.newModules.loraCardHover;
       /** @type {HTMLImageElement} */ // @ts-ignore
       const $image = Finder.query('img', $hover);
       /** @type {HTMLImageElement} */ // @ts-ignore
@@ -500,14 +597,14 @@ onUiLoaded(async () => {
      * @access private
      */
     viewerHide() {
-      Helper.hide(NewModules.loraCardHover);
+      Helper.hide(this.newModules.loraCardHover);
     }
 
     /**
      * @access private
      */
     cards() {
-      const $container = Modules.loraCards;
+      const $container = this.modules.loraCards;
       for (const $card of Finder.queryAll('.card', $container)) {
         const $model = this.cardToModel($card);
         Helper.hide($card);
@@ -564,14 +661,14 @@ onUiLoaded(async () => {
     search() {
       const timeoutMS = 300;
       let timerId = -1;
-      const $searchText = Modules.extraNetworksSearchText;
+      const $searchText = this.modules.extraNetworksSearchText;
       $searchText.addEventListener('input', () => {
         if (timerId !== -1) {
           clearTimeout(timerId);
         }
 
         timerId = setTimeout(() => {
-          for (const $model of Finder.queryAll('.lora_model', Modules.loraCards)) {
+          for (const $model of Finder.queryAll('.lora_model', this.modules.loraCards)) {
             const term = Finder.query('.search_term', $model).textContent || '';
             const shown = $searchText.value.length === 0 || term.toLowerCase().indexOf($searchText.value.toLowerCase()) > 0;
             $model.style.display = shown ? '' : 'none';
@@ -586,14 +683,14 @@ onUiLoaded(async () => {
      * @access private
      */
     refresh() {
-      Modules.extraNetworksRefresh.addEventListener('click', () => { this.reload(); });
+      this.modules.extraNetworksRefresh.addEventListener('click', () => { this.reload(); });
     }
 
     /**
      * @access private
      */
     subDirs() {
-      const $container = Modules.loraSubDirs;
+      const $container = this.modules.loraSubDirs;
       const $selectBox = Helper.select();
       $selectBox.addEventListener('change', e => {
         /** @type {HTMLTextAreaElement} */ // @ts-ignore
@@ -631,13 +728,13 @@ onUiLoaded(async () => {
       $label.appendChild($checkBox);
       $label.appendChild($span);
 
-      Modules.loraSubDirs.appendChild($label);
+      this.modules.loraSubDirs.appendChild($label);
 
       $checkBox.addEventListener('change', e => {
         /** @type {HTMLInputElement} */ // @ts-ignore
         const target = e?.target;
         const newest = target.checked;
-        const $container = Modules.loraCards;
+        const $container = this.modules.loraCards;
         /** @type {{timestamp: string, term: string, elem: HTMLElement}[]} */
         const items = [];
         for (const $model of Finder.queryAll('.lora_model', $container)) {
@@ -668,13 +765,13 @@ onUiLoaded(async () => {
      */
     exec() {
       const buttons = {
-        $gen: Modules.genButton,
-        $stop: Modules.stopButton,
-        $skip: Modules.skipButton,
+        $gen: this.modules.genButton,
+        $stop: this.modules.stopButton,
+        $skip: this.modules.skipButton,
       };
       const $genButton = this.makeNewGen(buttons);
       const $container = Helper.floatingButtonContainer();
-      $container.id = NewModules.ids.genTools;
+      $container.id = this.newModules.genToolsId;
       $container.style.right = '100px';
       $container.style.top = '-12px';
       $container.style['min-width'] = 'min(120px, 100%)';
@@ -686,7 +783,7 @@ onUiLoaded(async () => {
       Helper.leaveButton(buttons.$stop);
       Helper.leaveButton(buttons.$skip);
 
-      Modules.tokenCounter.after($container);
+      this.modules.tokenCounter.after($container);
     }
 
     /**
@@ -782,11 +879,11 @@ onUiLoaded(async () => {
       $container.style.right = '8px';
       $container.style.bottom = '-4px';
       $container.style['min-width'] = 'min(80px, 100%)';
-      $container.appendChild(Modules.toolsPaste);
+      $container.appendChild(this.modules.toolsPaste);
       $container.appendChild($restore);
       $container.appendChild($backup);
 
-      NewModules.genTools.after($container);
+      this.newModules.genTools.after($container);
     }
 
     /**
@@ -794,7 +891,7 @@ onUiLoaded(async () => {
      */
     makeBackup() {
       const $backup = Helper.div();
-      $backup.id = NewModules.ids.promptBackup;
+      $backup.id = this.newModules.promptBackupId;
       Helper.hide($backup);
       return $backup;
     }
@@ -806,8 +903,8 @@ onUiLoaded(async () => {
       const $restore = Helper.button();
       $restore.textContent = I18n.t.pngDropBackup.restore;
       $restore.addEventListener('click', () => {
-        const $prompt = Modules.prompt;
-        const $backup = NewModules.promptBackup;
+        const $prompt = this.modules.prompt;
+        const $backup = this.newModules.promptBackup;
         /** @type {HTMLTextAreaElement} */ // @ts-ignore
         const $textarea = Finder.query('textarea', $prompt);
         $textarea.value = $backup.textContent || '';
@@ -820,11 +917,11 @@ onUiLoaded(async () => {
      * @access private
      */
     handleDrop() {
-      const $prompt = Modules.prompt;
+      const $prompt = this.modules.prompt;
       $prompt.addEventListener('drop', () => {
         /** @type {HTMLTextAreaElement} */ // @ts-ignore
         const $textarea = Finder.query('textarea', $prompt);
-        const $backup = NewModules.promptBackup;
+        const $backup = this.newModules.promptBackup;
         $backup.textContent = $textarea.value;
       });
     }
@@ -853,9 +950,8 @@ onUiLoaded(async () => {
   function main() {
     console.log('remake ui start!');
 
-    const execs = [
+    const txt2imgs = [
       Txt2ImgTopExecutor,
-      AlignToolsExecutor,
       HideToolsExecutor,
       AlignSettingsExecutor,
       HideSettingsExecutor,
@@ -864,8 +960,22 @@ onUiLoaded(async () => {
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
     ];
-    for (const ctor of execs) {
-      new ctor().exec();
+    for (const ctor of txt2imgs) {
+      new ctor('txt2img').exec();
+    }
+
+    const img2imgs = [
+      Img2ImgTopExecutor,
+      Img2ImgHideTools,
+      HideToolsExecutor,
+      AlignSettingsExecutor,
+      HideSettingsExecutor,
+      LoraExecutor,
+      NewGenToolsExecutor,
+      NewPromptToolsExecutor,
+    ];
+    for (const ctor of img2imgs) {
+      new ctor('img2img').exec();
     }
 
     console.log('remake ui successfull!');
