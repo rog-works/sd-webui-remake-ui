@@ -271,6 +271,24 @@ onUiLoaded(async () => {
     get img2imgInterrogates() { return Finder.by(this.id('interrogate_col')); }
 
     /** @return {HTMLElement} */
+    get img2imgResizeMode() { return Finder.by(this.id('resize_mode')); }
+
+    /** @return {HTMLElement} */
+    get img2imgMaskMode() { return Finder.by(this.id('img2img_mask_mode')); }
+
+    /** @return {HTMLElement} */
+    get img2imgMaskedContent() { return Finder.by(this.id('img2img_inpainting_fill')); }
+
+    /** @return {HTMLElement} */
+    get img2imgInpaintArea() { return Finder.by(this.id('img2img_inpaint_full_res')); }
+
+    /** @return {HTMLElement} */
+    get img2imgInpaintControls() { return Finder.by(this.id('inpaint_controls')); }
+
+    /** @return {HTMLElement} */
+    get img2imgInpaintPadding() { return Finder.by(this.id('img2img_inpaint_full_res_padding')); }
+
+    /** @return {HTMLElement} */
     get toolsContainer() { return Finder.by(this.id('txt2img_actions_column')); }
 
     /** @return {HTMLElement} */
@@ -436,15 +454,6 @@ onUiLoaded(async () => {
     }
   }
 
-  class Img2ImgHideTools extends Executor {
-    /**
-     * @override
-     */
-    exec() {
-      Helper.hide(this.modules.img2imgInterrogates);
-    }
-  }
-
   class HideToolsExecutor extends Executor {
     /**
      * @override
@@ -514,6 +523,87 @@ onUiLoaded(async () => {
      */
     alignContainer() {
       this.modules.hiresFix.after(this.modules.tagSelectorContainer);
+    }
+  }
+
+  class Img2ImgHideTools extends Executor {
+    /**
+     * @override
+     */
+    exec() {
+      Helper.hide(this.modules.img2imgInterrogates);
+    }
+  }
+
+  class Img2ImgAlignSettingsExecutor extends Executor {
+    /**
+     * @override
+     */
+    exec() {
+      const $before = this.modules.hiresFixOrDenoiseStrength;
+      $before.after(this.modules.img2imgInpaintControls);
+      $before.after(this.modules.img2imgResizeMode);
+    }
+  }
+
+  class Img2ImgNewSettingsExecutor extends Executor {
+    /**
+     * @override
+     */
+    exec() {
+      this.remake(this.modules.img2imgResizeMode);
+      this.remake(this.modules.img2imgMaskMode);
+      this.remake(this.modules.img2imgMaskedContent);
+      this.remake(this.modules.img2imgInpaintArea);
+      this.align();
+    }
+
+    /**
+     * @param {HTMLElement} $container
+     * @access private
+     */
+    remake($container) {
+      const $radioContainer = Finder.query('div.flex', $container);
+
+      const $select = Helper.select();
+      for (const $input of Finder.queryAll('input[type="radio"]', $radioContainer)) {
+        /** @type {HTMLInputElement} */ // @ts-ignore
+        const $radio = $input;
+        const $option = Helper.option();
+        $option.value = $radio.value;
+        $option.textContent = $radio.value;
+        $option.selected = $radio.checked;
+        $select.appendChild($option);
+      }
+
+      $select.addEventListener('change', e => {
+        /** @type {HTMLSelectElement} */ // @ts-ignore
+        const $target = e?.target;
+        /** @type {HTMLInputElement} */ // @ts-ignore
+        const $radio = Finder.query(`input[type="radio"][value="${$target.value}"]`, $radioContainer);
+        $radio.checked = true;
+      });
+
+      $container.appendChild($select);
+
+      Helper.hide($radioContainer);
+    }
+
+    /**
+     * @access private
+     */
+    align() {
+      const $container = Helper.div();
+      $container.classList.add('flex', 'row');
+      $container.appendChild(this.modules.img2imgMaskMode);
+      $container.appendChild(this.modules.img2imgMaskedContent);
+      $container.appendChild(this.modules.img2imgInpaintArea);
+
+      const $root = this.modules.img2imgInpaintControls;
+      $root.appendChild($container);
+
+      const $barsRoot = Finder.query('div > div', $root);
+      $barsRoot.appendChild(this.modules.img2imgInpaintPadding);
     }
   }
 
@@ -966,10 +1056,12 @@ onUiLoaded(async () => {
 
     const img2imgs = [
       Img2ImgTopExecutor,
-      Img2ImgHideTools,
       HideToolsExecutor,
       AlignSettingsExecutor,
       HideSettingsExecutor,
+      Img2ImgHideTools,
+      Img2ImgAlignSettingsExecutor,
+      Img2ImgNewSettingsExecutor,
       LoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
