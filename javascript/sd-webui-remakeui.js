@@ -340,17 +340,19 @@ onUiLoaded(async () => {
     exec() {}
   }
 
-  class AlignPainExecutor extends Executor {
+  class Txt2ImgTopExecutor extends Executor {
     /**
      * @override
      */
     exec() {
       const $pain = Modules.pain;
+      const $top = Finder.query('div', $pain);
+      const $result = Modules.results;
 
       const $container = Helper.div();
       $container.classList.add('flex', 'row');
-      $container.appendChild(Finder.query('div', $pain));
-      $container.appendChild(Modules.results);
+      $container.appendChild($top);
+      $container.appendChild($result);
 
       $pain.appendChild($container);
     }
@@ -852,7 +854,7 @@ onUiLoaded(async () => {
     console.log('remake ui start!');
 
     const execs = [
-      AlignPainExecutor,
+      Txt2ImgTopExecutor,
       AlignToolsExecutor,
       HideToolsExecutor,
       AlignSettingsExecutor,
