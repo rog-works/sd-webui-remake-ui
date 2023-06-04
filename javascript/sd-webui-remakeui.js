@@ -157,7 +157,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLElement} $
      */
-    static hidden($) {
+    static hide($) {
       $.style.display = 'none';
     }
 
@@ -249,6 +249,12 @@ onUiLoaded(async () => {
     static get toolsContainer() { return Finder.by('txt2img_actions_column'); }
 
     /** @return {HTMLElement} */
+    static get tools() { return Finder.by('txt2img_tools'); }
+
+    /** @return {HTMLElement} */
+    static get toolsPaste() { return Finder.query('#paste', this.tools); }
+
+    /** @return {HTMLElement} */
     static get toolsClearPrompt() { return Finder.by('txt2img_clear_prompt'); }
 
     /** @return {HTMLElement} */
@@ -259,9 +265,6 @@ onUiLoaded(async () => {
 
     /** @return {HTMLElement} */
     static get toolsStyleCreate() { return Finder.by('txt2img_style_create'); }
-
-    /** @return {HTMLElement} */
-    static get tools() { return Finder.by('txt2img_tools'); }
 
     /** @return {HTMLElement} */
     static get sampler() { return Finder.by('sampler_selection_txt2img'); }
@@ -369,157 +372,10 @@ onUiLoaded(async () => {
      * @override
      */
     exec() {
-      Helper.hidden(Modules.toolsClearPrompt);
-      Helper.hidden(Modules.toolsStyleApply);
-      Helper.hidden(Modules.toolsStyleCreate);
-      Helper.hidden(Modules.toolsStyleSelect);
-    }
-  }
-
-  class NewGenToolsExecutor extends Executor {
-    /** @typedef {{$gen: HTMLButtonElement, $stop: HTMLButtonElement, $skip: HTMLButtonElement}} OrgButtons */
-
-    /**
-     * @override
-     */
-    exec() {
-      const buttons = {
-        $gen: Modules.genButton,
-        $stop: Modules.stopButton,
-        $skip: Modules.skipButton,
-      };
-      const $genButton = this.remakeGen(buttons);
-      const $container = Helper.floatingButtonContainer();
-      $container.id = NewModules.ids.genTools;
-      $container.style.right = '100px';
-      $container.style.top = '-12px';
-      $container.style['min-width'] = 'min(120px, 100%)';
-      $container.appendChild($genButton);
-      $container.appendChild(this.remakeStop(buttons, $genButton));
-      $container.appendChild(this.remakeSkip(buttons, $genButton));
-
-      Helper.leaveButton(buttons.$gen);
-      Helper.leaveButton(buttons.$stop);
-      Helper.leaveButton(buttons.$skip);
-
-      Modules.tokenCounter.after($container);
-    }
-
-    /**
-     * @param {OrgButtons} orgButtons
-     * @return {HTMLButtonElement}
-     * @access private
-     */
-    remakeGen(orgButtons) {
-      const $button = Helper.button();
-      $button.textContent = I18n.t.newGenTools.gen;
-      $button.addEventListener('click', () => {
-        orgButtons.$gen.click();
-        $button.disabled = true;
-        $button.classList.add('disabled', 'dark');
-      });
-      Helper.handleDisplayChanged(orgButtons.$stop, visibled => {
-        if (!visibled) {
-          $button.disabled = false;
-          $button.classList.remove('disabled', 'dark');
-        }
-      });
-
-      return $button;
-    }
-
-    /**
-     * @param {OrgButtons} orgButtons
-     * @param {HTMLButtonElement} $genButton
-     * @return {HTMLButtonElement}
-     * @access private
-     */
-    remakeStop(orgButtons, $genButton) {
-      const $button = Helper.button();
-      $button.classList.add('disabled', 'dark');
-      $button.textContent = I18n.t.newGenTools.stop;
-      $button.disabled = true;
-      $button.addEventListener('click', () => {
-        orgButtons.$stop.click();
-      });
-      $genButton.addEventListener('click', () => {
-        $button.disabled = false;
-        $button.classList.remove('disabled', 'dark');
-      });
-      Helper.handleDisplayChanged(orgButtons.$stop, visibled => {
-        if (!visibled) {
-          $button.disabled = true;
-          $button.classList.add('disabled', 'dark');
-        }
-      });
-
-      return $button;
-    }
-
-    /**
-     * @param {OrgButtons} orgButtons
-     * @param {HTMLButtonElement} $genButton
-     * @return {HTMLButtonElement}
-     * @access private
-     */
-    remakeSkip(orgButtons, $genButton) {
-      const $button = Helper.button();
-      $button.classList.add('disabled', 'dark');
-      $button.textContent = I18n.t.newGenTools.skip;
-      $button.disabled = true;
-      $button.addEventListener('click', () => {
-        orgButtons.$skip.click();
-      });
-      $genButton.addEventListener('click', () => {
-        $button.disabled = false;
-        $button.classList.remove('disabled', 'dark');
-      });
-      Helper.handleDisplayChanged(orgButtons.$stop, visibled => {
-        if (!visibled) {
-          $button.disabled = true;
-          $button.classList.add('disabled', 'dark');
-        }
-      });
-
-      return $button;
-    }
-  }
-
-  class PngDropBackupExecutor extends Executor {
-    /**
-     * @override
-     */
-    exec() {
-      const $backup = Helper.div();
-      $backup.id = NewModules.ids.promptBackup;
-      Helper.hidden($backup);
-
-      const $restore = Helper.button();
-      $restore.textContent = I18n.t.pngDropBackup.restore;
-      $restore.addEventListener('click', () => {
-        const $prompt = Modules.prompt;
-        /** @type {HTMLTextAreaElement} */ // @ts-ignore
-        const $textarea = Finder.query('textarea', $prompt);
-        $textarea.value = $backup.textContent || '';
-        updateInput($textarea);
-      });
-
-      const $prompt = Modules.prompt;
-      $prompt.addEventListener('drop', () => {
-        /** @type {HTMLTextAreaElement} */ // @ts-ignore
-        const $textarea = Finder.query('textarea', $prompt);
-        const $backup = NewModules.promptBackup;
-        $backup.textContent = $textarea.value;
-      });
-
-      const $container = Helper.floatingButtonContainer();
-      $container.style.right = '0px';
-      $container.style.bottom = '-12px';
-      $container.style['min-width'] = 'min(40px, 100%)';
-      $container.appendChild($restore);
-      $container.appendChild($backup);
-
-      NewModules.genTools.after($container);
+      Helper.hide(Modules.toolsClearPrompt);
+      Helper.hide(Modules.toolsStyleApply);
+      Helper.hide(Modules.toolsStyleCreate);
+      Helper.hide(Modules.toolsStyleSelect);
     }
   }
 
@@ -552,7 +408,7 @@ onUiLoaded(async () => {
      * @override
      */
     exec() {
-      Helper.hidden(Modules.seedContainer);
+      Helper.hide(Modules.seedContainer);
     }
   }
 
@@ -576,7 +432,7 @@ onUiLoaded(async () => {
      */
     exec() {
       this.handleMouse();
-      this.imageHover();
+      this.imageViewer();
       this.cards();
       this.search();
       this.refresh();
@@ -588,7 +444,7 @@ onUiLoaded(async () => {
      * @access private
      */
     reload() {
-      this.imageHover();
+      this.imageViewer();
       this.cards();
       this.subDirs();
       this.sort();
@@ -607,12 +463,12 @@ onUiLoaded(async () => {
     /**
      * @access private
      */
-    imageHover() {
+    imageViewer() {
       const $hover = Helper.div();
       $hover.id = NewModules.ids.loraCardHover;
       $hover.style.position = 'fixed';
       $hover.style['z-index'] = 1000;
-      Helper.hidden($hover);
+      Helper.hide($hover);
 
       const $image = Helper.img();
       $hover.appendChild($image);
@@ -624,7 +480,7 @@ onUiLoaded(async () => {
      * @param {HTMLElement} $model
      * @access private
      */
-    hoverShow($model) {
+    viewerShow($model) {
       const $hover = NewModules.loraCardHover;
       /** @type {HTMLImageElement} */ // @ts-ignore
       const $image = Finder.query('img', $hover);
@@ -640,8 +496,8 @@ onUiLoaded(async () => {
     /**
      * @access private
      */
-    hoverHide() {
-      Helper.hidden(NewModules.loraCardHover);
+    viewerHide() {
+      Helper.hide(NewModules.loraCardHover);
     }
 
     /**
@@ -651,7 +507,7 @@ onUiLoaded(async () => {
       const $container = Modules.loraCards;
       for (const $card of Finder.queryAll('.card', $container)) {
         const $model = this.cardToModel($card);
-        Helper.hidden($card);
+        Helper.hide($card);
         $container.appendChild($model);
       }
     }
@@ -693,9 +549,9 @@ onUiLoaded(async () => {
       $model.addEventListener('mouseenter', e => {
         /** @type {HTMLElement} */ // @ts-ignore
         const target = e?.target;
-        this.hoverShow(target);
+        this.viewerShow(target);
       });
-      $model.addEventListener('mouseleave', () => { this.hoverHide(); });
+      $model.addEventListener('mouseleave', () => { this.viewerHide(); });
       return $model;
     }
 
@@ -703,6 +559,7 @@ onUiLoaded(async () => {
      * @access private
      */
     search() {
+      const timeoutMS = 300;
       let timerId = -1;
       const $searchText = Modules.extraNetworksSearchText;
       $searchText.addEventListener('input', () => {
@@ -718,7 +575,7 @@ onUiLoaded(async () => {
           }
 
           timerId = -1;
-        }, 300);
+        }, timeoutMS);
       });
     }
 
@@ -741,6 +598,7 @@ onUiLoaded(async () => {
         for (const $dir of Finder.queryAll('button', $container)) {
           if ($dir.textContent === target.value) {
             $dir.click();
+            break;
           }
         }
       });
@@ -751,7 +609,7 @@ onUiLoaded(async () => {
         $option.textContent = $dir.textContent;
         $selectBox.appendChild($option);
 
-        Helper.hidden($dir);
+        Helper.hide($dir);
       }
 
       $container.appendChild($selectBox);
@@ -799,6 +657,176 @@ onUiLoaded(async () => {
     }
   }
 
+  class NewGenToolsExecutor extends Executor {
+    /** @typedef {{$gen: HTMLButtonElement, $stop: HTMLButtonElement, $skip: HTMLButtonElement}} OrgButtons */
+
+    /**
+     * @override
+     */
+    exec() {
+      const buttons = {
+        $gen: Modules.genButton,
+        $stop: Modules.stopButton,
+        $skip: Modules.skipButton,
+      };
+      const $genButton = this.makeNewGen(buttons);
+      const $container = Helper.floatingButtonContainer();
+      $container.id = NewModules.ids.genTools;
+      $container.style.right = '100px';
+      $container.style.top = '-12px';
+      $container.style['min-width'] = 'min(120px, 100%)';
+      $container.appendChild($genButton);
+      $container.appendChild(this.makeNewStop(buttons, $genButton));
+      $container.appendChild(this.makeNewSkip(buttons, $genButton));
+
+      Helper.leaveButton(buttons.$gen);
+      Helper.leaveButton(buttons.$stop);
+      Helper.leaveButton(buttons.$skip);
+
+      Modules.tokenCounter.after($container);
+    }
+
+    /**
+     * @param {OrgButtons} orgButtons
+     * @return {HTMLButtonElement}
+     * @access private
+     */
+    makeNewGen(orgButtons) {
+      const $button = Helper.button();
+      $button.textContent = I18n.t.newGenTools.gen;
+      $button.addEventListener('click', () => {
+        orgButtons.$gen.click();
+        $button.disabled = true;
+        $button.classList.add('disabled', 'dark');
+      });
+      Helper.handleDisplayChanged(orgButtons.$stop, visibled => {
+        if (!visibled) {
+          $button.disabled = false;
+          $button.classList.remove('disabled', 'dark');
+        }
+      });
+
+      return $button;
+    }
+
+    /**
+     * @param {OrgButtons} orgButtons
+     * @param {HTMLButtonElement} $genButton
+     * @return {HTMLButtonElement}
+     * @access private
+     */
+    makeNewStop(orgButtons, $genButton) {
+      const $button = Helper.button();
+      $button.classList.add('disabled', 'dark');
+      $button.textContent = I18n.t.newGenTools.stop;
+      $button.disabled = true;
+      $button.addEventListener('click', () => {
+        orgButtons.$stop.click();
+      });
+      $genButton.addEventListener('click', () => {
+        $button.disabled = false;
+        $button.classList.remove('disabled', 'dark');
+      });
+      Helper.handleDisplayChanged(orgButtons.$stop, visibled => {
+        if (!visibled) {
+          $button.disabled = true;
+          $button.classList.add('disabled', 'dark');
+        }
+      });
+
+      return $button;
+    }
+
+    /**
+     * @param {OrgButtons} orgButtons
+     * @param {HTMLButtonElement} $genButton
+     * @return {HTMLButtonElement}
+     * @access private
+     */
+    makeNewSkip(orgButtons, $genButton) {
+      const $button = Helper.button();
+      $button.classList.add('disabled', 'dark');
+      $button.textContent = I18n.t.newGenTools.skip;
+      $button.disabled = true;
+      $button.addEventListener('click', () => {
+        orgButtons.$skip.click();
+      });
+      $genButton.addEventListener('click', () => {
+        $button.disabled = false;
+        $button.classList.remove('disabled', 'dark');
+      });
+      Helper.handleDisplayChanged(orgButtons.$stop, visibled => {
+        if (!visibled) {
+          $button.disabled = true;
+          $button.classList.add('disabled', 'dark');
+        }
+      });
+
+      return $button;
+    }
+  }
+
+  class NewPromptToolsExecutor extends Executor {
+    /**
+     * @override
+     */
+    exec() {
+      const $backup = this.makeBackup();
+      const $restore = this.makeRestore();
+      this.handleDrop();
+
+      const $container = Helper.floatingButtonContainer();
+      $container.style.right = '0px';
+      $container.style.bottom = '-12px';
+      $container.style['min-width'] = 'min(80px, 100%)';
+      $container.appendChild(Modules.toolsPaste);
+      $container.appendChild($restore);
+      $container.appendChild($backup);
+
+      NewModules.genTools.after($container);
+    }
+
+    /**
+     * @access private
+     */
+    makeBackup() {
+      const $backup = Helper.div();
+      $backup.id = NewModules.ids.promptBackup;
+      Helper.hide($backup);
+      return $backup;
+    }
+
+    /**
+     * @access private
+     */
+    makeRestore() {
+      const $restore = Helper.button();
+      $restore.textContent = I18n.t.pngDropBackup.restore;
+      $restore.addEventListener('click', () => {
+        const $prompt = Modules.prompt;
+        const $backup = NewModules.promptBackup;
+        /** @type {HTMLTextAreaElement} */ // @ts-ignore
+        const $textarea = Finder.query('textarea', $prompt);
+        $textarea.value = $backup.textContent || '';
+        updateInput($textarea);
+      });
+      return $restore;
+    }
+
+    /**
+     * @access private
+     */
+    handleDrop() {
+      const $prompt = Modules.prompt;
+      $prompt.addEventListener('drop', () => {
+        /** @type {HTMLTextAreaElement} */ // @ts-ignore
+        const $textarea = Finder.query('textarea', $prompt);
+        const $backup = NewModules.promptBackup;
+        $backup.textContent = $textarea.value;
+      });
+    }
+  }
+
   /**
    * @return {Promise<void>}
    */
@@ -831,7 +859,7 @@ onUiLoaded(async () => {
       AlignTagSelectorExecutor,
       LoraExecutor,
       NewGenToolsExecutor,
-      PngDropBackupExecutor,
+      NewPromptToolsExecutor,
     ];
     for (const ctor of execs) {
       new ctor().exec();
