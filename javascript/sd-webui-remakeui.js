@@ -234,6 +234,9 @@ onUiLoaded(async () => {
     static get prompt() { return Finder.by('txt2img_prompt'); }
 
     /** @return {HTMLElement} */
+    static get results() { return Finder.by('txt2img_results'); }
+
+    /** @return {HTMLElement} */
     static get tokenCounter() { return Finder.by('txt2img_token_counter'); }
 
     /** @return {HTMLButtonElement} */ // @ts-ignore
@@ -276,7 +279,7 @@ onUiLoaded(async () => {
     static get seedContainer() { return Finder.by('txt2img_seed_row'); }
 
     /** @return {HTMLElement} */
-    static get seed() { return Finder.by('txt2img_seed'); }
+    static get seedExtra() { return Finder.by('txt2img_subseed_show_box'); }
 
     /** @return {HTMLElement} */
     static get cfgScale() { return Finder.by('txt2img_cfg_scale'); }
@@ -337,21 +340,19 @@ onUiLoaded(async () => {
     exec() {}
   }
 
-  class Txt2ImgTopExecutor extends Executor {
+  class AlignPainExecutor extends Executor {
     /**
      * @override
      */
     exec() {
-      const $txt2img = Modules.pain;
-      const $top = Finder.query('div', $txt2img);
-      const $result = Finder.query('#txt2img_results', $top);
+      const $pain = Modules.pain;
 
       const $container = Helper.div();
       $container.classList.add('flex', 'row');
-      $container.appendChild($top);
-      $container.appendChild($result);
+      $container.appendChild(Finder.query('div', $pain));
+      $container.appendChild(Modules.results);
 
-      $txt2img.appendChild($container);
+      $pain.appendChild($container);
     }
   }
 
@@ -390,7 +391,7 @@ onUiLoaded(async () => {
       const $container = Helper.div();
       $container.id = NewModules.ids.seedStepsCfgContainer;
       $container.classList.add('flex', 'row', 'w-full', 'flex-wrap', 'gap-4');
-      $container.appendChild(Modules.seed);
+      $container.appendChild(Modules.seedContainer);
       $container.appendChild(Modules.steps);
       $container.appendChild(Modules.cfgScale);
 
@@ -408,7 +409,7 @@ onUiLoaded(async () => {
      * @override
      */
     exec() {
-      Helper.hide(Modules.seedContainer);
+      Helper.hide(Modules.seedExtra);
     }
   }
 
@@ -417,7 +418,7 @@ onUiLoaded(async () => {
      * @override
      */
     exec() {
-      NewModules.seedStepsCfgContainer.after(Modules.tagSelectorContainer);
+      Modules.hiresFix.after(Modules.tagSelectorContainer);
     }
   }
 
@@ -776,8 +777,8 @@ onUiLoaded(async () => {
       this.handleDrop();
 
       const $container = Helper.floatingButtonContainer();
-      $container.style.right = '0px';
-      $container.style.bottom = '-12px';
+      $container.style.right = '8px';
+      $container.style.bottom = '-4px';
       $container.style['min-width'] = 'min(80px, 100%)';
       $container.appendChild(Modules.toolsPaste);
       $container.appendChild($restore);
@@ -851,7 +852,7 @@ onUiLoaded(async () => {
     console.log('remake ui start!');
 
     const execs = [
-      Txt2ImgTopExecutor,
+      AlignPainExecutor,
       AlignToolsExecutor,
       HideToolsExecutor,
       AlignSettingsExecutor,
