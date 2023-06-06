@@ -859,18 +859,18 @@ onUiLoaded(async () => {
       const $container = Finder.query('div', $pain);
       const [$scan, $info, $model, $bulkScan, ..._] = Finder.queryAll(`#${$pain.id} > div > div`);
 
-      const $rows1 = Helper.div();
-      $rows1.classList.add('flex', 'row');
-      $rows1.appendChild($model);
-      $rows1.appendChild($info);
+      const $row1 = Helper.div();
+      $row1.classList.add('flex', 'row');
+      $row1.appendChild($model);
+      $row1.appendChild($info);
 
-      const $rows2 = Helper.div();
-      $rows2.classList.add('flex', 'row');
-      $rows2.appendChild($scan);
-      $rows2.appendChild($bulkScan);
+      const $row2 = Helper.div();
+      $row2.classList.add('flex', 'row');
+      $row2.appendChild($scan);
+      $row2.appendChild($bulkScan);
 
-      $pain.appendChild($rows1);
-      $pain.appendChild($rows2);
+      $pain.appendChild($row1);
+      $pain.appendChild($row2);
       $pain.appendChild($container);
     }
   }
