@@ -893,6 +893,9 @@ onUiLoaded(async () => {
         if (!visibled) {
           $button.disabled = false;
           $button.classList.remove('disabled', 'dark');
+        } else {
+          $button.disabled = true;
+          $button.classList.add('disabled', 'dark');
         }
       });
 
@@ -921,6 +924,9 @@ onUiLoaded(async () => {
         if (!visibled) {
           $button.disabled = true;
           $button.classList.add('disabled', 'dark');
+        } else {
+          $button.disabled = false;
+          $button.classList.remove('disabled', 'dark');
         }
       });
 
@@ -949,6 +955,9 @@ onUiLoaded(async () => {
         if (!visibled) {
           $button.disabled = true;
           $button.classList.add('disabled', 'dark');
+        } else {
+          $button.disabled = false;
+          $button.classList.remove('disabled', 'dark');
         }
       });
 
