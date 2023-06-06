@@ -355,6 +355,9 @@ onUiLoaded(async () => {
     get scripts() { return Finder.by(this.id('txt2img_script_container')); }
 
     /** @return {HTMLElement} */
+    get civitaiHelper() { return Finder.by(this.id('tab_civitai_helper')); }
+
+    /** @return {HTMLElement} */
     get tagSelectorContainer() { return Finder.by(this.id('interactive-tag-selector')); }
 
     /** @return {HTMLElement} */
@@ -443,12 +446,12 @@ onUiLoaded(async () => {
 
       const $modes = this.modules.img2imgModes;
       const $result = this.modules.results;
-      $modes.appendChild($result);
 
       const $container = Helper.div();
       $container.classList.add('flex', 'row');
       $container.appendChild($top);
       $container.appendChild($modes);
+      $container.appendChild($result);
 
       $pain.appendChild($container);
     }
@@ -847,6 +850,31 @@ onUiLoaded(async () => {
     }
   }
 
+  class CivitaiHelperAlignTools extends Executor {
+    /**
+     * @override
+     */
+    exec() {
+      const $pain = this.modules.civitaiHelper;
+      const $container = Finder.query('div', $pain);
+      const [$scan, $info, $model, $bulkScan, ..._] = Finder.queryAll(`#${$pain.id} > div > div`);
+
+      const $rows1 = Helper.div();
+      $rows1.classList.add('flex', 'row');
+      $rows1.appendChild($model);
+      $rows1.appendChild($info);
+
+      const $rows2 = Helper.div();
+      $rows2.classList.add('flex', 'row');
+      $rows2.appendChild($scan);
+      $rows2.appendChild($bulkScan);
+
+      $pain.appendChild($rows1);
+      $pain.appendChild($rows2);
+      $pain.appendChild($container);
+    }
+  }
+
   class NewGenToolsExecutor extends Executor {
     /** @typedef {{$gen: HTMLButtonElement, $stop: HTMLButtonElement, $skip: HTMLButtonElement}} OrgButtons */
 
@@ -1076,6 +1104,13 @@ onUiLoaded(async () => {
       NewPromptToolsExecutor,
     ];
     for (const ctor of img2imgs) {
+      new ctor('img2img').exec();
+    }
+
+    const civitaiHelpers = [
+      CivitaiHelperAlignTools,
+    ];
+    for (const ctor of civitaiHelpers) {
       new ctor('img2img').exec();
     }
 
