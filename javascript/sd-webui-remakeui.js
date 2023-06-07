@@ -584,7 +584,7 @@ onUiLoaded(async () => {
         const $target = e?.target;
         /** @type {HTMLInputElement} */ // @ts-ignore
         const $radio = Finder.query(`input[type="radio"][value="${$target.value}"]`, $radioContainer);
-        $radio.checked = true;
+        $radio.click(); // XXX `checked = true;`だとラジオのみ変化するだけで、実行処理に影響しないためクリック
       });
 
       $container.appendChild($select);
