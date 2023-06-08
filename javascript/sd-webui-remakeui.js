@@ -109,7 +109,6 @@ onUiLoaded(async () => {
       $.placeholder = '';
       $.rows = 1;
       $.style['overflow-y'] = 'scroll';
-      $.style.height = '42px';
       return $;
     }
 
@@ -227,6 +226,7 @@ onUiLoaded(async () => {
       },
       lora: {
         newest: '新着順',
+        refresh: '♻️',
       },
     };
   }
@@ -649,8 +649,23 @@ onUiLoaded(async () => {
      * @return {HTMLElement}
      * @access private
      */
+    get $$container() {
+      return Finder.query('.lora_container', this.$$overlay);
+    }
+
+    /**
+     * @return {HTMLElement}
+     * @access private
+     */
+    get $$contents() {
+      return Finder.query('.lora_contents', this.$$overlay);
+    }
+
+    /**
+     * @return {HTMLElement}
+     * @access private
+     */
     get $$items() {
-      // @ts-ignore
       return Finder.query('.lora_items', this.$$overlay);
     }
 
@@ -733,9 +748,11 @@ onUiLoaded(async () => {
       const $search = this.makeSearch();
       $search.style['flex-basis'] = '50%';
       const $subDirs = this.makeSubDirs();
-      $subDirs.style['flex-basis'] = '40%';
+      $subDirs.style['flex-basis'] = '30%';
       const $newSort = this.makeNewSort();
       $newSort.style['flex-basis'] = '10%';
+      const $refresh  = this.makeRefresh();
+      $refresh.style['flex-basis'] = '10%';
 
       const $top = Helper.div();
       $top.classList.add('flex', 'row');
@@ -743,15 +760,16 @@ onUiLoaded(async () => {
       $top.appendChild($search);
       $top.appendChild($subDirs);
       $top.appendChild($newSort);
+      $top.appendChild($refresh);
 
       const $bottom = Helper.div();
       $bottom.classList.add('flex', 'row');
-      $bottom.style['min-height'] = 'calc(100% - 50px)';
+      $bottom.style['min-height'] = 'calc(100% - 100px)';
       $bottom.appendChild($items);
       $bottom.appendChild($imgBox);
 
       const $contents = Helper.div();
-      $contents.classList.add('flex', 'flex-col', 'p-4', 'm-2', 'border');
+      $contents.classList.add('flex', 'flex-col', 'p-4', 'm-2', 'border', 'lora_contents');
       $contents.style['background'] = 'rgba(0, 0, 0, 0.5)';
       $contents.style['border-radius'] = '0.5rem';
       $contents.appendChild($top);
@@ -817,6 +835,7 @@ onUiLoaded(async () => {
     makeSearch() {
       const timeoutMS = 300;
       const $search = Helper.textarea();
+      $search.style.height = '42px';
       $search.classList.add('lora_search');
       let timerId = -1;
       $search.addEventListener('input', () => {
@@ -865,6 +884,10 @@ onUiLoaded(async () => {
       return $selectBox;
     }
 
+    /**
+     * @returns {HTMLElement}
+     * @access private
+     */
     makeNewSort() {
       const $checkBox = Helper.checkbox();
       $checkBox.addEventListener('change', e => {
@@ -901,6 +924,22 @@ onUiLoaded(async () => {
     }
 
     /**
+     * @returns {HTMLElement}
+     * @access private
+     */
+    makeRefresh() {
+      const $refresh = Helper.button();
+      $refresh.style.margin = '0px'; // XXX
+      $refresh.textContent = I18n.t.lora.refresh;
+      $refresh.addEventListener('click', () => {
+        const $container = this.$$container;
+        $container.removeChild(this.$$contents);
+        $container.appendChild(this.makeContents());
+      });
+      return $refresh;
+    }
+
+    /**
      * @param {HTMLElement} $contents
      * @param {HTMLElement} $space
      * @return {HTMLElement}
@@ -908,7 +947,7 @@ onUiLoaded(async () => {
      */
     makeContainer($space, $contents) {
       const $container = Helper.div();
-      $container.classList.add('flex', 'row');
+      $container.classList.add('flex', 'row', 'lora_container');
       $container.style.width = '100%';
       $container.style.height = '100%';
       $container.appendChild($space);
@@ -1424,7 +1463,7 @@ onUiLoaded(async () => {
       HideSettingsExecutor,
       AlignTagSelectorExecutor,
       NewLoraExecutor,
-      LoraExecutor,
+      // LoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
     ];
