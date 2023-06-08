@@ -638,6 +638,40 @@ onUiLoaded(async () => {
     }
 
     /**
+     * @return {HTMLElement}
+     * @access private
+     */
+    get $$overlay () {
+      return Finder.by(`${this.mode}_new_lora`);
+    }
+
+    /**
+     * @return {HTMLElement}
+     * @access private
+     */
+    get $$items() {
+      // @ts-ignore
+      return Finder.query('.lora_items', this.$$overlay);
+    }
+
+    /**
+     * @return {NodeListOf<HTMLElement>}
+     * @access private
+     */
+    get $$itemEntries() {
+      return Finder.queryAll('.lora_item', this.$$overlay);
+    }
+
+    /**
+     * @return {HTMLTextAreaElement}
+     * @access private
+     */
+    get $$search() {
+      // @ts-ignore
+      return Finder.query('.lora_search', this.$$overlay);
+    }
+
+    /**
      * @param {HTMLElement} $container
      * @return {HTMLElement}
      * @access private
@@ -674,8 +708,9 @@ onUiLoaded(async () => {
      * @access private
      */
     makeContents() {
-      const $models = Helper.div();
-      $models.style['overflow-y'] = 'scroll';
+      const $items = Helper.div();
+      $items.classList.add('lora_items');
+      $items.style['overflow-y'] = 'scroll';
 
       const $img = Helper.img();
       $img.src = I18n.t.image.notFound;
@@ -692,17 +727,27 @@ onUiLoaded(async () => {
           const $thumb = Finder.query('img', $item);
           $img.src = $thumb.src;
         });
-        $models.appendChild($item);
+        $items.appendChild($item);
       }
 
+      const $search = this.makeSearch();
+      $search.style['flex-basis'] = '50%';
+      const $subDirs = this.makeSubDirs();
+      $subDirs.style['flex-basis'] = '40%';
+      const $newSort = this.makeNewSort();
+      $newSort.style['flex-basis'] = '10%';
+
       const $top = Helper.div();
+      $top.classList.add('flex', 'row');
       $top.style.padding = '1rem 0';
-      $top.appendChild(this.makeSearch());
+      $top.appendChild($search);
+      $top.appendChild($subDirs);
+      $top.appendChild($newSort);
 
       const $bottom = Helper.div();
       $bottom.classList.add('flex', 'row');
       $bottom.style['min-height'] = 'calc(100% - 50px)';
-      $bottom.appendChild($models);
+      $bottom.appendChild($items);
       $bottom.appendChild($imgBox);
 
       const $contents = Helper.div();
@@ -772,6 +817,7 @@ onUiLoaded(async () => {
     makeSearch() {
       const timeoutMS = 300;
       const $search = Helper.textarea();
+      $search.classList.add('lora_search');
       let timerId = -1;
       $search.addEventListener('input', () => {
         if (timerId !== -1) {
@@ -779,11 +825,10 @@ onUiLoaded(async () => {
         }
         timerId = setTimeout(() => {
           const values = $search.value.toLowerCase().split(' ').filter(str => str.trim().length > 0);
-          const $overlay = Finder.by(`${this.mode}_new_lora`);
-          for (const $model of Finder.queryAll('.lora_item', $overlay)) {
-            const term = ($model.dataset.search_term || '').toLowerCase();
+          for (const $item of this.$$itemEntries) {
+            const term = ($item.dataset.search_term || '').toLowerCase();
             const visible = values.filter(value => term.indexOf(value) > 0).length == values.length;
-            $model.style.display = visible ? '' : 'none';
+            $item.style.display = visible ? '' : 'none';
           }
 
           timerId = -1;
@@ -791,6 +836,68 @@ onUiLoaded(async () => {
       });
 
       return $search;
+    }
+
+    /**
+     * @return {HTMLElement}
+     * @access private
+     */
+    makeSubDirs() {
+      const $selectBox = Helper.select();
+      for (const $dir of Finder.queryAll('button', this.modules.loraSubDirs)) {
+        const $option = Helper.option();
+        $option.value = ($dir.textContent || '').trim();
+        $option.textContent = $option.value;
+        $selectBox.appendChild($option);
+      }
+
+      $selectBox.addEventListener('change', e => {
+        /** @type {HTMLInputElement} */ // @ts-ignore
+        const $target = e?.target;
+        const $search = this.$$search;
+        // XXX かえって面倒なので一旦コメントアウト
+        // const words = this.$$search.value.split(' ').filter(str => str.trim().length > 0);
+        // $search.value = [...words, $target.value].join(' ');
+        $search.value = $target.value;
+        updateInput($search);
+      });
+
+      return $selectBox;
+    }
+
+    makeNewSort() {
+      const $checkBox = Helper.checkbox();
+      $checkBox.addEventListener('change', e => {
+        /** @type {HTMLInputElement} */ // @ts-ignore
+        const target = e?.target;
+        const newest = target.checked;
+        /** @type {{timestamp: string, term: string, elem: HTMLElement}[]} */
+        const terms = [];
+        for (const $item of this.$$itemEntries) {
+          const term = $item.dataset.search_term?.toLowerCase() || '';
+          terms.push({timestamp: $item.dataset.timestamp || '', term: term, elem: $item});
+        }
+
+        terms.sort((a, b) => {
+          if (newest) {
+            return parseInt(b.timestamp) - parseInt(a.timestamp);
+          } else {
+            return a.term > b.term ? 1 : -1;
+          }
+        });
+
+        terms.forEach(term => {
+          this.$$items.appendChild(term.elem);
+        });
+      });
+
+      const $span = Helper.span();
+      $span.textContent = I18n.t.lora.newest;
+
+      const $label = Helper.label();
+      $label.appendChild($checkBox);
+      $label.appendChild($span);
+      return $label;
     }
 
     /**
