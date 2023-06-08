@@ -1463,7 +1463,6 @@ onUiLoaded(async () => {
       HideSettingsExecutor,
       AlignTagSelectorExecutor,
       NewLoraExecutor,
-      // LoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
     ];
@@ -1479,7 +1478,7 @@ onUiLoaded(async () => {
       Img2ImgHideTools,
       Img2ImgAlignSettingsExecutor,
       Img2ImgNewSettingsExecutor,
-      LoraExecutor,
+      NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
     ];
