@@ -101,6 +101,19 @@ onUiLoaded(async () => {
     }
 
     /**
+     * @return {HTMLTextAreaElement}
+     */
+    static textarea() {
+      const $ = document.createElement('textarea');
+      $.classList.add('scroll-hide', 'block', 'gr-box', 'gr-input', 'w-full', 'gr-text-input');
+      $.placeholder = '';
+      $.rows = 1;
+      $.style['overflow-y'] = 'scroll';
+      $.style.height = '42px';
+      return $;
+    }
+
+    /**
      * @return {HTMLInputElement}
      */
     static checkbox() {
@@ -171,7 +184,6 @@ onUiLoaded(async () => {
       $button.style.height = '0';
       $button.style.top = '0';
       $button.style.left = '0';
-      $button.style.top = '0';
       $button.style.margin = '0';
       $button.style.padding = '0';
       $button.style.border = '0';
@@ -411,6 +423,7 @@ onUiLoaded(async () => {
      * @param {'txt2img' | 'img2img'} mode
      */
     constructor(mode) {
+      this.mode = mode;
       this.modules = new Modules(mode);
       this.newModules = new NewModules(mode);
     }
@@ -607,6 +620,226 @@ onUiLoaded(async () => {
 
       const $barsRoot = Finder.query('div > div', $root);
       $barsRoot.appendChild(this.modules.img2imgInpaintPadding);
+    }
+  }
+
+  class NewLoraExecutor extends Executor {
+    /**
+     * @override
+     */
+    exec() {
+      const $space = this.makeSpace();
+      const $contents = this.makeContents();
+      const $container = this.makeContainer($space, $contents);
+      const $overlay = this.makeOverlay($container);
+      this.handleClose($overlay, $space);
+      this.handleOpen($overlay);
+      this.alignOverlay($overlay);
+    }
+
+    /**
+     * @param {HTMLElement} $container
+     * @return {HTMLElement}
+     * @access private
+     */
+    makeOverlay($container) {
+      const $overlay = Helper.div();
+      $overlay.id = `${this.mode}_new_lora`;
+      $overlay.style.position = 'fixed';
+      $overlay.style.width = '100%';
+      $overlay.style.height = '100%';
+      $overlay.style.left = '0';
+      $overlay.style.top = '0';
+      $overlay.style.margin = '0';
+      $overlay.style.padding = '0';
+      $overlay.style.border = '0';
+      $overlay.style['min-width'] = 'initial';
+      $overlay.style['min-height'] = 'initial';
+      $overlay.style['z-index'] = 1001;
+      $overlay.style.display = 'none';
+      $overlay.appendChild($container);
+      return $overlay;
+    }
+
+    /**
+     * @return {HTMLElement}
+     * @access private
+     */
+    makeSpace() {
+      return Helper.div();
+    }
+
+    /**
+     * @return {HTMLElement}
+     * @access private
+     */
+    makeContents() {
+      const $models = Helper.div();
+      $models.style['overflow-y'] = 'scroll';
+
+      const $img = Helper.img();
+      $img.src = I18n.t.image.notFound;
+      $img.style.width = '100%';
+      $img.style.height = 'auto';
+
+      const $imgBox = Helper.div();
+      $imgBox.appendChild($img);
+
+      for (const $card of Finder.queryAll('.card', this.modules.loraCards)) {
+        const $item = this.makeItem($card);
+        $item.addEventListener('mouseenter', () => {
+          /** @type {HTMLImageElement} */ // @ts-ignore
+          const $thumb = Finder.query('img', $item);
+          $img.src = $thumb.src;
+        });
+        $models.appendChild($item);
+      }
+
+      const $top = Helper.div();
+      $top.style.padding = '1rem 0';
+      $top.appendChild(this.makeSearch());
+
+      const $bottom = Helper.div();
+      $bottom.classList.add('flex', 'row');
+      $bottom.style['min-height'] = 'calc(100% - 50px)';
+      $bottom.appendChild($models);
+      $bottom.appendChild($imgBox);
+
+      const $contents = Helper.div();
+      $contents.classList.add('flex', 'flex-col', 'p-4', 'm-2', 'border');
+      $contents.style['background'] = 'rgba(0, 0, 0, 0.5)';
+      $contents.style['border-radius'] = '0.5rem';
+      $contents.appendChild($top);
+      $contents.appendChild($bottom);
+      return $contents;
+    }
+
+    /**
+     * @param {HTMLElement} $card
+     * @return {HTMLElement}
+     * @access private
+     */
+    makeItem($card) {
+      const $thumb = Helper.img();
+      const matches = $card.style['background-image'].match(/"(.+)"/);
+      $thumb.src = matches ? matches[1] : I18n.t.image.notFound;
+      $thumb.style.width = '25px';
+      $thumb.style.height = 'auto';
+
+      const $imgBox = Helper.div();
+      $imgBox.style['flex-basis'] = '10%';
+      $imgBox.appendChild($thumb);
+
+      const $path = Helper.div();
+      $path.textContent = Finder.query('.actions > .name', $card).textContent;
+      $path.style['text-align'] = 'left';
+      $path.style['flex-basis'] = '60%';
+
+      const $actions = Helper.div();
+      $actions.style['flex-basis'] = '30%';
+
+      const $orgActions = Finder.queryAll('.actions > .additional > ul > a', $card);
+      $orgActions.forEach(($orgAction) => {
+        const $action = Helper.button();
+        $action.textContent = $orgAction.textContent;
+        $action.addEventListener('click', e => {
+          e.stopPropagation();
+          e.preventDefault();
+          $orgAction.click();
+        });
+        $actions.appendChild($action);
+      });
+
+      const timeMatches = $thumb.src.match(/mtime=(\d+)/);
+      const timestamp = timeMatches ? parseInt(timeMatches[1]) : 0;
+
+      const $searchTerm = Finder.query('.actions > .additional > .search_term', $card);
+      const $item = Helper.div();
+      $item.classList.add('flex', 'lora_item');
+      $item.dataset.timestamp = `${timestamp}`;
+      $item.dataset.search_term = $searchTerm.textContent || '';
+      $item.appendChild($imgBox);
+      $item.appendChild($path);
+      $item.appendChild($actions);
+      $item.addEventListener('click', () => $card.click());
+      return $item;
+    }
+
+    /**
+     * @return {HTMLElement}
+     * @access private
+     */
+    makeSearch() {
+      const timeoutMS = 300;
+      const $search = Helper.textarea();
+      let timerId = -1;
+      $search.addEventListener('input', () => {
+        if (timerId !== -1) {
+          clearTimeout(timerId);
+        }
+        timerId = setTimeout(() => {
+          const values = $search.value.toLowerCase().split(' ').filter(str => str.trim().length > 0);
+          const $overlay = Finder.by(`${this.mode}_new_lora`);
+          for (const $model of Finder.queryAll('.lora_item', $overlay)) {
+            const term = ($model.dataset.search_term || '').toLowerCase();
+            const visible = values.filter(value => term.indexOf(value) > 0).length == values.length;
+            $model.style.display = visible ? '' : 'none';
+          }
+
+          timerId = -1;
+        }, timeoutMS);
+      });
+
+      return $search;
+    }
+
+    /**
+     * @param {HTMLElement} $contents
+     * @param {HTMLElement} $space
+     * @return {HTMLElement}
+     * @access private
+     */
+    makeContainer($space, $contents) {
+      const $container = Helper.div();
+      $container.classList.add('flex', 'row');
+      $container.style.width = '100%';
+      $container.style.height = '100%';
+      $container.appendChild($space);
+      $container.appendChild($contents);
+      return $container;
+    }
+
+    /**
+     * @param {HTMLElement} $overlay
+     * @access private
+     */
+    handleOpen($overlay) {
+      const $button = Helper.button();
+      $button.textContent = '🌐';
+      $button.addEventListener('click', () => {
+        $overlay.style.display = 'block';
+      });
+
+      const $tools = this.modules.tools;
+      $tools.appendChild($button);
+    }
+
+    /**
+     * @param {HTMLElement} $overlay
+     * @param {HTMLElement} $space
+     * @access private
+     */
+    handleClose($overlay, $space) {
+      $space.addEventListener('click', () => Helper.hide($overlay));
+    }
+
+    /**
+     * @param {HTMLElement} $overlay
+     * @access private
+     */
+    alignOverlay($overlay) {
+      const $tabs = Finder.by('tabs');
+      $tabs.appendChild($overlay);
     }
   }
 
@@ -1083,6 +1316,7 @@ onUiLoaded(async () => {
       AlignSettingsExecutor,
       HideSettingsExecutor,
       AlignTagSelectorExecutor,
+      NewLoraExecutor,
       LoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
