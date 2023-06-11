@@ -1004,11 +1004,11 @@ onUiLoaded(async () => {
       $button.textContent = '2:3';
       $button.addEventListener('click', () => {
         const presets = [
-          {w: '512', h: '768'},
-          {w: '640', h: '960'},
-          {w: '768', h: '1152'},
-          {w: '896', h: '1344'},
-          {w: '1024', h: '1536'},
+          '512x768',
+          '640x960',
+          '768x1152',
+          '896x1344',
+          '1024x1536',
         ];
         const $w = this.modules.widthSlider;
         const $h = this.modules.heightSlider;
@@ -1020,38 +1020,20 @@ onUiLoaded(async () => {
         const $wRange = Finder.query('input[type="range"]',$w);
         /** @type {HTMLInputElement} */ // @ts-ignore
         const $hRange = Finder.query('input[type="range"]',$h);
-        let founded = false;
-        for (const index in presets) {
-          const preset = presets[index];
-          if ($wNumber.value === preset.w && $hNumber.value === preset.h) {
-            const preset2 = presets[(parseInt(index) + 1) % presets.length];
-            $wNumber.value = preset2.w;
-            $hNumber.value = preset2.h;
-            $wRange.value = preset2.w;
-            $hRange.value = preset2.h;
-            founded = true;
-            updateInput($wNumber);
-            updateInput($hNumber);
-            updateInput($wRange);
-            updateInput($hRange);
-            break;
-          }
-        }
-
-        if (!founded) {
-          $wNumber.value = presets[0].w;
-          $hNumber.value = presets[0].h;
-          $wRange.value = presets[0].w;
-          $hRange.value = presets[0].h;
-          updateInput($wNumber);
-          updateInput($hNumber);
-          updateInput($wRange);
-          updateInput($hRange);
-        }
+        const current = `${$wNumber.value}x${$hNumber.value}`;
+        const index = presets.indexOf(current);
+        const [w, h] = presets[index === -1 ? 0 : index].split('x');
+        $wNumber.value = w;
+        $hNumber.value = h;
+        $wRange.value = w;
+        $hRange.value = h;
+        updateInput($wNumber);
+        updateInput($hNumber);
+        updateInput($wRange);
+        updateInput($hRange);
       });
 
-      const $tools = this.modules.tools;
-      $tools.appendChild($button);
+      this.modules.tools.appendChild($button);
     }
   }
 
