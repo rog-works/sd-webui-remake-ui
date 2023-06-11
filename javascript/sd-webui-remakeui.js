@@ -995,7 +995,7 @@ onUiLoaded(async () => {
     }
   }
 
-  class NewAspectTool extends Executor {
+  class NewAspectToolExecutor extends Executor {
     /**
      * @override
      */
@@ -1280,7 +1280,7 @@ onUiLoaded(async () => {
       AlignSettingsExecutor,
       HideSettingsExecutor,
       AlignTagSelectorExecutor,
-      NewAspectTool,
+      NewAspectToolExecutor,
       NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
@@ -1297,7 +1297,7 @@ onUiLoaded(async () => {
       Img2ImgHideTools,
       Img2ImgAlignSettingsExecutor,
       Img2ImgNewSettingsExecutor,
-      NewAspectTool,
+      NewAspectToolExecutor,
       NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
