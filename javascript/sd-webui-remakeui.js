@@ -1001,7 +1001,7 @@ onUiLoaded(async () => {
      */
     exec() {
       const $button = Helper.button();
-      $button.textContent = '3:2';
+      $button.textContent = '2:3';
       $button.addEventListener('click', () => {
         const presets = [
           {w: '512', h: '768'},
