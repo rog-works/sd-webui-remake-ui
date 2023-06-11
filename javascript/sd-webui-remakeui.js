@@ -276,6 +276,12 @@ onUiLoaded(async () => {
     /** @return {HTMLButtonElement} */ // @ts-ignore
     get skipButton() { return Finder.by(this.id('txt2img_skip')); }
 
+    /** @return {HTMLInputElement} */ // @ts-ignore
+    get widthSlider() { return Finder.by(this.id('txt2img_width')); }
+
+    /** @return {HTMLInputElement} */ // @ts-ignore
+    get heightSlider() { return Finder.by(this.id('txt2img_height')); }
+
     /** @return {HTMLElement} */
     get img2imgModes() { return Finder.by(this.id('mode_img2img')); }
 
@@ -989,243 +995,55 @@ onUiLoaded(async () => {
     }
   }
 
-  class LoraExecutor extends Executor {
-    /**
-     * @param {'txt2img' | 'img2img'} mode
-     * @override
-     */
-    constructor(mode) {
-      super(mode);
-      this.mouse = { x: 0, y: 0 };
-    }
-
+  class NewAspectTool extends Executor {
     /**
      * @override
      */
     exec() {
-      this.handleMouse();
-      this.imageViewer();
-      this.cards();
-      this.search();
-      this.refresh();
-      this.subDirs();
-      this.sort();
-    }
-
-    /**
-     * @access private
-     */
-    reload() {
-      this.imageViewer();
-      this.cards();
-      this.subDirs();
-      this.sort();
-    }
-
-    /**
-     * @access private
-     */
-    handleMouse() {
-      window.addEventListener('mousemove', (e) => {
-        this.mouse.x = e.clientX;
-        this.mouse.y = e.clientY;
-      });
-    }
-
-    /**
-     * @access private
-     */
-    imageViewer() {
-      const $hover = Helper.div();
-      $hover.id = this.newModules.loraCardHoverId;
-      $hover.style.position = 'fixed';
-      $hover.style['z-index'] = 1000;
-      Helper.hide($hover);
-
-      const $image = Helper.img();
-      $hover.appendChild($image);
-
-      this.modules.loraCards.appendChild($hover);
-    }
-
-    /**
-     * @param {HTMLElement} $model
-     * @access private
-     */
-    viewerShow($model) {
-      const $hover = this.newModules.loraCardHover;
-      /** @type {HTMLImageElement} */ // @ts-ignore
-      const $image = Finder.query('img', $hover);
-      /** @type {HTMLImageElement} */ // @ts-ignore
-      const $orgImage = Finder.query('img', $model);
-      $image.src = $orgImage.src;
-      $hover.style.width = '240px';
-      $hover.style.display = '';
-      $hover.style.left = `${Math.max(0, this.mouse.x - 240)}px`;
-      $hover.style.top = `${Math.max(0, this.mouse.y - 400)}px`;
-    }
-
-    /**
-     * @access private
-     */
-    viewerHide() {
-      Helper.hide(this.newModules.loraCardHover);
-    }
-
-    /**
-     * @access private
-     */
-    cards() {
-      const $container = this.modules.loraCards;
-      for (const $card of Finder.queryAll('.card', $container)) {
-        const $model = this.cardToModel($card);
-        Helper.hide($card);
-        $container.appendChild($model);
-      }
-    }
-
-    /**
-     * @param {HTMLElement} $card
-     * @return {HTMLElement}
-     * @access private
-     */
-    cardToModel($card) {
-      const $img = Helper.img();
-      const matches = $card.style['background-image'].match(/"(.+)"/);
-      $img.src = matches ? matches[1] : I18n.t.image.notFound;
-      $img.style.width = '25px';
-      $img.style.height = 'auto';
-
-      const $imgBox = Helper.div();
-      $imgBox.style['flex-basis'] = '10%';
-      $imgBox.appendChild($img);
-
-      const $path = Helper.div();
-      $path.textContent = Finder.query('.actions > .name', $card).textContent;
-      $path.style['text-align'] = 'left';
-      $path.style['flex-basis'] = '50%';
-
-      const $actions = Finder.query('.actions > .additional', $card);
-      $actions.style['flex-basis'] = '40%';
-
-      const timeMatches = $img.src.match(/mtime=(\d+)/);
-      const timestamp = timeMatches ? parseInt(timeMatches[1]) : 0;
-
-      const $model = Helper.div();
-      $model.classList.add('flex', 'w-2/4', 'gr-button', 'gr-button-primary', 'lora_model');
-      $model.dataset.timestamp = `${timestamp}`;
-      $model.appendChild($imgBox);
-      $model.appendChild($path);
-      $model.appendChild($actions);
-      $model.addEventListener('click', () => { $card.click(); });
-      $model.addEventListener('mouseenter', e => {
-        /** @type {HTMLElement} */ // @ts-ignore
-        const target = e?.target;
-        this.viewerShow(target);
-      });
-      $model.addEventListener('mouseleave', () => { this.viewerHide(); });
-      return $model;
-    }
-
-    /**
-     * @access private
-     */
-    search() {
-      const timeoutMS = 300;
-      let timerId = -1;
-      const $searchText = this.modules.extraNetworksSearchText;
-      $searchText.addEventListener('input', () => {
-        if (timerId !== -1) {
-          clearTimeout(timerId);
-        }
-
-        timerId = setTimeout(() => {
-          for (const $model of Finder.queryAll('.lora_model', this.modules.loraCards)) {
-            const term = Finder.query('.search_term', $model).textContent || '';
-            const shown = $searchText.value.length === 0 || term.toLowerCase().indexOf($searchText.value.toLowerCase()) > 0;
-            $model.style.display = shown ? '' : 'none';
-          }
-
-          timerId = -1;
-        }, timeoutMS);
-      });
-    }
-
-    /**
-     * @access private
-     */
-    refresh() {
-      this.modules.extraNetworksRefresh.addEventListener('click', () => { this.reload(); });
-    }
-
-    /**
-     * @access private
-     */
-    subDirs() {
-      const $container = this.modules.loraSubDirs;
-      const $selectBox = Helper.select();
-      $selectBox.addEventListener('change', e => {
-        /** @type {HTMLTextAreaElement} */ // @ts-ignore
-        const target = e?.target;
-        for (const $dir of Finder.queryAll('button', $container)) {
-          if ($dir.textContent === target.value) {
-            $dir.click();
+      const $button = Helper.button();
+      $button.textContent = '3:2';
+      $button.addEventListener('click', () => {
+        const presets = [
+          {w: '512', h: '768'},
+          {w: '640', h: '960'},
+          {w: '768', h: '1152'},
+          {w: '896', h: '1344'},
+          {w: '1024', h: '1536'},
+        ];
+        const $w = this.modules.widthSlider;
+        const $h = this.modules.heightSlider;
+        /** @type {HTMLInputElement} */ // @ts-ignore
+        const $wNumber = Finder.query('input[type="number"]',$w);
+        /** @type {HTMLInputElement} */ // @ts-ignore
+        const $hNumber = Finder.query('input[type="number"]',$h);
+        /** @type {HTMLInputElement} */ // @ts-ignore
+        const $wRange = Finder.query('input[type="range"]',$w);
+        /** @type {HTMLInputElement} */ // @ts-ignore
+        const $hRange = Finder.query('input[type="range"]',$h);
+        let founded = false;
+        for (const index in presets) {
+          const preset = presets[index];
+          if ($wNumber.value === preset.w && $hNumber.value === preset.h) {
+            const preset2 = presets[(parseInt(index) + 1) % presets.length];
+            $wNumber.value = preset2.w;
+            $hNumber.value = preset2.h;
+            $wRange.value = preset2.w;
+            $hRange.value = preset2.h;
+            founded = true;
             break;
           }
         }
-      });
 
-      for (const $dir of Finder.queryAll('button', $container)) {
-        const $option = Helper.option();
-        $option.value = $dir.textContent || '';
-        $option.textContent = $dir.textContent;
-        $selectBox.appendChild($option);
-
-        Helper.hide($dir);
-      }
-
-      $container.appendChild($selectBox);
-    }
-
-    /**
-     * @access private
-     */
-    sort() {
-      const $checkBox = Helper.checkbox();
-
-      const $span = Helper.span();
-      $span.textContent = I18n.t.lora.newest;
-
-      const $label = Helper.label();
-      $label.appendChild($checkBox);
-      $label.appendChild($span);
-
-      this.modules.loraSubDirs.appendChild($label);
-
-      $checkBox.addEventListener('change', e => {
-        /** @type {HTMLInputElement} */ // @ts-ignore
-        const target = e?.target;
-        const newest = target.checked;
-        const $container = this.modules.loraCards;
-        /** @type {{timestamp: string, term: string, elem: HTMLElement}[]} */
-        const items = [];
-        for (const $model of Finder.queryAll('.lora_model', $container)) {
-          const term = Finder.query('.search_term', $model).textContent || '';
-          items.push({timestamp: $model.dataset.timestamp || '', term: term, elem: $model});
+        if (!founded) {
+          $wNumber.value = presets[0].w;
+          $hNumber.value = presets[0].h;
+          $wRange.value = presets[0].w;
+          $hRange.value = presets[0].h;
         }
-
-        items.sort((a, b) => {
-          if (newest) {
-            return parseInt(b.timestamp) - parseInt(a.timestamp);
-          } else {
-            return a.term.toLowerCase() > b.term.toLowerCase() ? 1 : -1;
-          }
-        });
-
-        items.forEach(item => {
-          $container.appendChild(item.elem);
-        });
       });
+
+      const $tools = this.modules.tools;
+      $tools.appendChild($button);
     }
   }
 
@@ -1462,6 +1280,7 @@ onUiLoaded(async () => {
       AlignSettingsExecutor,
       HideSettingsExecutor,
       AlignTagSelectorExecutor,
+      NewAspectTool,
       NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
@@ -1478,6 +1297,7 @@ onUiLoaded(async () => {
       Img2ImgHideTools,
       Img2ImgAlignSettingsExecutor,
       Img2ImgNewSettingsExecutor,
+      NewAspectTool,
       NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
