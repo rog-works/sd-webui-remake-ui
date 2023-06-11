@@ -1022,7 +1022,7 @@ onUiLoaded(async () => {
         const $hRange = Finder.query('input[type="range"]',$h);
         const current = `${$wNumber.value}x${$hNumber.value}`;
         const index = presets.indexOf(current);
-        const [w, h] = presets[index === -1 ? 0 : index].split('x');
+        const [w, h] = presets[index === -1 ? 0 : (index + 1) % presets.length].split('x');
         $wNumber.value = w;
         $hNumber.value = h;
         $wRange.value = w;
