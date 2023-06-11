@@ -1030,6 +1030,10 @@ onUiLoaded(async () => {
             $wRange.value = preset2.w;
             $hRange.value = preset2.h;
             founded = true;
+            updateInput($wNumber);
+            updateInput($hNumber);
+            updateInput($wRange);
+            updateInput($hRange);
             break;
           }
         }
@@ -1039,6 +1043,10 @@ onUiLoaded(async () => {
           $hNumber.value = presets[0].h;
           $wRange.value = presets[0].w;
           $hRange.value = presets[0].h;
+          updateInput($wNumber);
+          updateInput($hNumber);
+          updateInput($wRange);
+          updateInput($hRange);
         }
       });
 
