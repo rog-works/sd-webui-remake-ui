@@ -1286,8 +1286,14 @@ onUiLoaded(async () => {
     makeRunButton($table) {
       const $button = Helper.button();
       $button.textContent = I18n.t.civitaiHelper.model.actions.run;
-      $button.addEventListener('click', () => {
-        this.run($table);
+      $button.addEventListener('click', async () => {
+        $button.disabled = true;
+        $button.classList.add('disabled', 'dark');
+
+        await this.run($table);
+
+        $button.disabled = false;
+        $button.classList.remove('disabled', 'dark');
       });
 
       return $button;
@@ -1336,7 +1342,9 @@ onUiLoaded(async () => {
 
           const $wrap = Finder.query(`#${this.modules.civitaiHelperModelSectionId} > div > div:nth-child(4) div.wrap`);
           if ($wrap.classList.contains('opacity-0')) {
-            return true;
+            /** @type {HTMLTextAreaElement} */ // @ts-ignore
+            const $name = Finder.query(`#${this.modules.civitaiHelperModelSectionId} > div > div:nth-child(4) > div textarea`);
+            return $name.value.length > 0;
           }
         }
 
@@ -1423,6 +1431,8 @@ onUiLoaded(async () => {
           return false;
         }
 
+        await Core.sleep(5000);// 対向システムへの負荷軽減
+
         return true;
       };
 
@@ -1458,11 +1468,9 @@ onUiLoaded(async () => {
         Helper.selected(target.$select, I18n.t.civitaiHelper.model.statuses.processing);
         const succeess = await download(model);
         Helper.selected(target.$select, succeess ? I18n.t.civitaiHelper.model.statuses.complete : I18n.t.civitaiHelper.model.statuses.error);
-
-        await Core.sleep(5000);// 対向システムへの負荷軽減
       }
 
-      console.log('download completed!');
+      console.log('bulk download completed!');
     }
 
     /**
