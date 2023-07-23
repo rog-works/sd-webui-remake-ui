@@ -1425,13 +1425,13 @@ onUiLoaded(async () => {
           return false;
         }
 
-        await Core.sleep(1000);// 対向システムへの負荷軽減
+        await Core.sleep(1000); // 対向システムへの負荷軽減
 
         if (!await modelDownload(model)) {
           return false;
         }
 
-        await Core.sleep(5000);// 対向システムへの負荷軽減
+        await Core.sleep(5000); // 対向システムへの負荷軽減
 
         return true;
       };
@@ -1439,18 +1439,18 @@ onUiLoaded(async () => {
       while(true) {
         /** @type {NodeListOf<HTMLTableRowElement>} */ // @ts-ignore
         const $rows = Finder.queryAll('tbody > tr', $table);
-        /** @type {{$url: HTMLElement, $subdir: HTMLTextAreaElement, $version: HTMLTextAreaElement, $select: HTMLSelectElement} | null} */
+        /** @type {{$url: HTMLElement, $subdir: HTMLTextAreaElement, $version: HTMLTextAreaElement, $status: HTMLSelectElement} | null} */
         let target = null;
         for (const $row of $rows) {
-          const [$url, $subdir_, $version_, $status] = $row.cells;
+          const [$url, $subdir_, $version_, $status_] = $row.cells;
           /** @type {HTMLTextAreaElement} */ // @ts-ignore
           const $subdir = Finder.query('textarea', $subdir_);
           /** @type {HTMLTextAreaElement} */ // @ts-ignore
           const $version = Finder.query('textarea', $version_);
           /** @type {HTMLSelectElement} */ // @ts-ignore
-          const $select = Finder.query('select', $status);
-          if ($select.value === I18n.t.civitaiHelper.model.statuses.standby) {
-            target = {$url, $subdir, $version, $select};
+          const $status = Finder.query('select', $status_);
+          if ($status.value === I18n.t.civitaiHelper.model.statuses.standby) {
+            target = {$url, $subdir, $version, $status};
             break;
           }
         };
@@ -1461,25 +1461,16 @@ onUiLoaded(async () => {
 
         const model = {
           url: target.$url.textContent || '',
-          subdir: target.$subdir.value || '',
-          version: target.$version.value || '',
-          status: target.$select.value,
+          subdir: target.$subdir.value,
+          version: target.$version.value,
+          status: target.$status.value,
         };
-        Helper.selected(target.$select, I18n.t.civitaiHelper.model.statuses.processing);
+        Helper.selected(target.$status, I18n.t.civitaiHelper.model.statuses.processing);
         const succeess = await download(model);
-        Helper.selected(target.$select, succeess ? I18n.t.civitaiHelper.model.statuses.complete : I18n.t.civitaiHelper.model.statuses.error);
+        Helper.selected(target.$status, succeess ? I18n.t.civitaiHelper.model.statuses.complete : I18n.t.civitaiHelper.model.statuses.error);
       }
 
       console.log('bulk download completed!');
-    }
-
-    /**
-     * @param {HTMLTableElement} $table
-     * @param {HTMLTextAreaElement} $textarea
-     */
-    clear($table, $textarea) {
-      this.clearTable($table);
-      this.clearTextarea($textarea);
     }
 
     /**
@@ -1513,8 +1504,7 @@ onUiLoaded(async () => {
         prevSubdir = subdir;
       }
 
-      $textarea.value = '';
-      updateInput($textarea);
+      this.clearTextarea($textarea);
     }
 
     /**
@@ -1522,20 +1512,22 @@ onUiLoaded(async () => {
      * @param {{url: string, subdir: string, version: string}} model
      */
     addReserve($table, model) {
-      const $row = Helper.tableRow();
       const $url = Helper.tableCell();
-      const $subdir = Helper.tableCell();
-      const $version = Helper.tableCell();
-      const $status = Helper.tableCell();
-      const $subdirText = Helper.textbox();
-      const $versionText = Helper.textbox();
       $url.textContent = model.url;
+
+      const $subdir = Helper.tableCell();
+      const $subdirText = Helper.textbox();
       $subdirText.value = model.subdir;
-      $versionText.value = model.version;
       updateInput($subdirText);
-      updateInput($versionText);
       $subdir.appendChild($subdirText);
+
+      const $version = Helper.tableCell();
+      const $versionText = Helper.textbox();
+      $versionText.value = model.version;
+      updateInput($versionText);
       $version.appendChild($versionText);
+
+      const $status = Helper.tableCell();
       const $select = Helper.select();
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.standby));
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.processing));
@@ -1543,10 +1535,13 @@ onUiLoaded(async () => {
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.error));
       $select.value = I18n.t.civitaiHelper.model.statuses.standby;
       $status.appendChild($select);
+
+      const $row = Helper.tableRow();
       $row.appendChild($url);
       $row.appendChild($subdir);
       $row.appendChild($version);
       $row.appendChild($status);
+
       const $body = Finder.query('tbody', $table);
       $body.appendChild($row);
     }
