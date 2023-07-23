@@ -970,8 +970,12 @@ onUiLoaded(async () => {
         console.warn('refresh wait timedout.');
       }
 
-      const postRefresh = () => {
+      /**
+       * @returns {Promise<void>}
+       */
+      const postRefresh = async () => {
         this.modules.extraNetworksRefreshCivitai.click();
+        await Core.sleep(100);
       }
 
       const $refresh = Helper.button();
@@ -981,7 +985,7 @@ onUiLoaded(async () => {
       $refresh.addEventListener('click', async () => {
         beforeRefresh();
         await waitUntilRefresh();
-        postRefresh();
+        await postRefresh();
 
         const $container = this.$$container;
         $container.removeChild(this.$$contents);
