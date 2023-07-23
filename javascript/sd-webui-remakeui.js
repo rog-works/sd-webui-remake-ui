@@ -107,6 +107,14 @@ onUiLoaded(async () => {
       const $ = document.createElement('textarea');
       $.classList.add('scroll-hide', 'block', 'gr-box', 'gr-input', 'w-full', 'gr-text-input');
       $.placeholder = '';
+      return $;
+    }
+
+    /**
+     * @return {HTMLTextAreaElement}
+     */
+    static textbox() {
+      const $ = this.textarea();
       $.rows = 1;
       $.style['overflow-y'] = 'scroll';
       return $;
@@ -133,10 +141,14 @@ onUiLoaded(async () => {
     }
 
     /**
+     * @param {string} value
      * @return {HTMLOptionElement}
      */
-    static option() {
-      return document.createElement('option');
+    static option(value) {
+      const $ = document.createElement('option');
+      $.value = value;
+      $.textContent = value;
+      return $;
     }
 
     /**
@@ -156,11 +168,69 @@ onUiLoaded(async () => {
     }
 
     /**
+     * @return {HTMLTableElement}
+     */
+    static table() {
+      const $ = document.createElement('table');
+      return $;
+    }
+
+    /**
+     * @return {HTMLTableSectionElement}
+     */
+    static tableHeader() {
+      const $ = document.createElement('thead');
+      return $;
+    }
+
+    /**
+     * @return {HTMLTableSectionElement}
+     */
+    static tableBody() {
+      const $ = document.createElement('tbody');
+      return $;
+    }
+
+    /**
+     * @param {string} text
+     * @return {HTMLTableCellElement}
+     */
+    static tableHeaderCell(text) {
+      const $ = document.createElement('th');
+      $.textContent = text;
+      return $;
+    }
+
+    /**
+     * @return {HTMLTableRowElement}
+     */
+    static tableRow() {
+      const $ = document.createElement('tr');
+      return $;
+    }
+
+    /**
+     * @return {HTMLTableCellElement}
+     */
+    static tableCell() {
+      const $ = document.createElement('td');
+      return $;
+    }
+
+    /**
+     * @return {HTMLDivElement}
+     */
+    static buttonContainer() {
+      const $ = this.div();
+      $.classList.add('flex', 'row', 'flex-wrap', 'gap-1');
+      return $;
+    }
+
+    /**
      * @return {HTMLDivElement}
      */
     static floatingButtonContainer() {
-      const $ = this.div();
-      $.classList.add('flex', 'row', 'flex-wrap', 'gap-1');
+      const $ = this.buttonContainer();
       $.style.position = 'absolute';
       $.style['z-index'] = 100;
       return $;
@@ -171,6 +241,17 @@ onUiLoaded(async () => {
      */
     static hide($) {
       $.style.display = 'none';
+    }
+
+    /**
+     * セレクトボックスの選択状態を変更し、反映のため更新イベントを発火する
+     *
+     * @param {HTMLSelectElement} $select
+     * @param {string} value
+     */
+    static selected($select, value) {
+      $select.value = value;
+      $select.dispatchEvent(new Event('change'));
     }
 
     /**
@@ -227,6 +308,27 @@ onUiLoaded(async () => {
       lora: {
         newest: '新着順',
         refresh: '♻️',
+      },
+      civitaiHelper: {
+        model: {
+          headers: {
+            url: 'URL',
+            subdir: 'Sub Folder',
+            version: 'Version',
+            status: 'Status',
+          },
+          actions: {
+            run: '▶️',
+            apply: '↙️',
+            clear: '×',
+          },
+          statuses: {
+            standby: 'StandBy',
+            processing: 'Processing',
+            complete: 'Complete',
+            error: 'Error',
+          },
+        },
       },
     };
   }
@@ -377,6 +479,12 @@ onUiLoaded(async () => {
 
     /** @return {HTMLElement} */
     get civitaiHelper() { return Finder.by(this.id('tab_civitai_helper')); }
+
+    /** @return {string} */
+    get civitaiHelperModelPainId() { return this.id('civitai_helper_model_pain'); }
+
+    /** @return {HTMLElement} */
+    get civitaiHelperModelPain() { return Finder.by(this.id(this.civitaiHelperModelPainId)); }
 
     /** @return {HTMLElement} */
     get tagSelectorContainer() { return Finder.by(this.id('interactive-tag-selector')); }
@@ -600,9 +708,7 @@ onUiLoaded(async () => {
       for (const $input of Finder.queryAll('input[type="radio"]', $radioContainer)) {
         /** @type {HTMLInputElement} */ // @ts-ignore
         const $radio = $input;
-        const $option = Helper.option();
-        $option.value = $radio.value;
-        $option.textContent = $radio.value;
+        const $option = Helper.option($radio.value);
         $option.selected = $radio.checked;
         $select.appendChild($option);
       }
@@ -849,7 +955,7 @@ onUiLoaded(async () => {
      */
     makeSearch() {
       const timeoutMS = 300;
-      const $search = Helper.textarea();
+      const $search = Helper.textbox();
       $search.style.height = '42px';
       $search.classList.add('lora_search');
       let timerId = -1;
@@ -879,9 +985,7 @@ onUiLoaded(async () => {
     makeSubDirs() {
       const $selectBox = Helper.select();
       for (const $dir of Finder.queryAll('button', this.modules.loraSubDirs)) {
-        const $option = Helper.option();
-        $option.value = ($dir.textContent || '').trim();
-        $option.textContent = $option.value;
+        const $option = Helper.option(($dir.textContent || '').trim());
         $selectBox.appendChild($option);
       }
 
@@ -1086,7 +1190,7 @@ onUiLoaded(async () => {
     }
   }
 
-  class CivitaiHelperAlignTools extends Executor {
+  class CivitaiHelperAlignToolsExecutor extends Executor {
     /**
      * @override
      */
@@ -1094,6 +1198,9 @@ onUiLoaded(async () => {
       const $pain = this.modules.civitaiHelper;
       const $container = Finder.query('div', $pain);
       const [$scan, $info, $model, $bulkScan, ..._] = Finder.queryAll(`#${$pain.id} > div > div`);
+
+      // @see CivitaiHelperBulkDownloadExecutor
+      $model.id = this.modules.civitaiHelperModelPainId;
 
       const $row1 = Helper.div();
       $row1.classList.add('flex', 'row');
@@ -1108,6 +1215,315 @@ onUiLoaded(async () => {
       $pain.appendChild($row1);
       $pain.appendChild($row2);
       $pain.appendChild($container);
+    }
+  }
+
+  class CivitaiHelperBulkDownloadExecutor extends Executor {
+    /**
+     * @override
+     */
+    exec() {
+      const $container = Helper.div();
+      const $table = this.makeTable();
+      const $textarea = this.makeTextarea();
+      const $tools = this.makeTools($table, $textarea);
+      $container.appendChild($tools);
+      $container.appendChild($textarea);
+      $container.appendChild($table);
+      const $pain = this.modules.civitaiHelperModelPain;
+      $pain.appendChild($container);
+    }
+
+    /**
+     * @returns {HTMLTableElement}
+     */
+    makeTable() {
+      const $table = Helper.table();
+      const $header = Helper.tableHeader();
+      const $body = Helper.tableBody();
+      const $headerRow = Helper.tableRow();
+      $headerRow.appendChild(Helper.tableHeaderCell(I18n.t.civitaiHelper.model.headers.url));
+      $headerRow.appendChild(Helper.tableHeaderCell(I18n.t.civitaiHelper.model.headers.subdir));
+      $headerRow.appendChild(Helper.tableHeaderCell(I18n.t.civitaiHelper.model.headers.version));
+      $headerRow.appendChild(Helper.tableHeaderCell(I18n.t.civitaiHelper.model.headers.status));
+      $header.appendChild($headerRow);
+      $table.appendChild($header);
+      $table.appendChild($body);
+      return $table;
+    }
+
+    /**
+     * @returns {HTMLTextAreaElement}
+     */
+    makeTextarea() {
+      const $textarea = Helper.textarea();
+      return $textarea;
+    }
+
+    /**
+     * @param {HTMLTableElement} $table
+     * @param {HTMLTextAreaElement} $textarea
+     * @returns {HTMLElement}
+     */
+    makeTools($table, $textarea) {
+      const $tools = Helper.buttonContainer();
+      const $runButton = this.makeRunButton($table);
+      const $applyButton = this.makeApplyButton($table, $textarea);
+      const $clearButton = this.makeClearButton($table, $textarea);
+      $tools.appendChild($runButton);
+      $tools.appendChild($applyButton);
+      $tools.appendChild($clearButton);
+      return $tools;
+    }
+
+    /**
+     * @param {HTMLTableElement} $table
+     * @returns {HTMLButtonElement}
+     */
+    makeRunButton($table) {
+      const $button = Helper.button();
+      $button.textContent = I18n.t.civitaiHelper.model.actions.run;
+      $button.addEventListener('click', () => {
+        this.run($table);
+      });
+
+      return $button;
+    }
+
+    /**
+     * @param {HTMLTableElement} $table
+     * @param {HTMLTextAreaElement} $textarea
+     * @returns {HTMLButtonElement}
+     */
+    makeApplyButton($table, $textarea) {
+      const $button = Helper.button();
+      $button.textContent = I18n.t.civitaiHelper.model.actions.apply;
+      $button.addEventListener('click', () => {
+        this.apply($table, $textarea);
+      });
+
+      return $button;
+    }
+
+    /**
+     * @param {HTMLTableElement} $table
+     * @param {HTMLTextAreaElement} $textarea
+     * @returns {HTMLButtonElement}
+     */
+    makeClearButton($table, $textarea) {
+      const $button = Helper.button();
+      $button.textContent = I18n.t.civitaiHelper.model.actions.clear;
+      $button.addEventListener('click', () => {
+        this.clear($table, $textarea);
+      });
+
+      return $button;
+    }
+
+    /**
+     * @param {HTMLTableElement} $table
+     */
+    async run($table) {
+      /**
+       * @returns {Promise<boolean>}
+       */
+      const waitUntilInfoDownload = async () => {
+        let timeout = 0;
+        while(timeout < 5000) {
+          await Core.sleep(100);
+
+          const $wrap = Finder.query(`#${this.modules.civitaiHelperModelPainId} > div > div:nth-child(4) div.wrap`);
+          if ($wrap.classList.contains('opacity-0')) {
+            return true;
+          }
+        }
+
+        console.warn('info download timedout.');
+        return false;
+      }
+
+      /**
+       * @returns {Promise<boolean>}
+       */
+      const waitUntilModelDownload = async () => {
+        let timeout = 0;
+        while(timeout < 10 * 60 * 1000) {
+          await Core.sleep(1000);
+
+          const $elems = Finder.queryAll(`#${this.modules.civitaiHelperModelPainId} > div > div`); // XXX div:nth-child(5)だと何故か取得できない
+          const $wrap = Finder.query('div.wrap', $elems[4]);
+          if ($wrap.classList.contains('opacity-0')) {
+            return true;
+          }
+        }
+
+        console.warn('model download timedout.');
+        return false;
+      }
+
+      /**
+       * @param {{url: string, subdir: string, version: string, status: string}} model
+       * @return {Promise<boolean>}
+       */
+      const infoDownload = async (model) => {
+        const $info = Finder.query(`#${this.modules.civitaiHelperModelPainId} > div > div:nth-child(2)`);
+        /** @type {HTMLTextAreaElement} */ // @ts-ignore
+        const $url = Finder.query('textarea', $info);
+        /** @type {HTMLButtonElement} */ // @ts-ignore
+        const $button = Finder.query('button', $info);
+        $url.value = model.url;
+        updateInput($url);
+        await Core.sleep(10); // XXX DOM更新待ちのsleep
+
+        $button.click();
+        return await waitUntilInfoDownload();
+      }
+
+      /**
+       * @param {{url: string, subdir: string, version: string, status: string}} model
+       * @return {Promise<boolean>}
+       */
+      const modelDownload = async (model) => {
+        const $model = Finder.query(`#${this.modules.civitaiHelperModelPainId} > div > div:nth-child(4)`);
+        /** @type {HTMLSelectElement} */ // @ts-ignore
+        const $subdir = Finder.query('div:nth-child(2) select', $model);
+        /** @type {HTMLSelectElement} */ // @ts-ignore
+        const $version = Finder.query('div:nth-child(3) select', $model);
+        Helper.selected($subdir, model.subdir);
+        Helper.selected($version, model.version === 'latent' ? $version.options[0].value : model.version)
+        await Core.sleep(10); // XXX DOM更新待ちのsleep
+
+        /** @type {HTMLButtonElement} */ // @ts-ignore
+        const $button = Finder.query(`#${this.modules.civitaiHelperModelPainId} > div > button`);
+        $button.click();
+        if (!await waitUntilModelDownload()) {
+          return false;
+        }
+
+        const $elems = Finder.queryAll(`#${this.modules.civitaiHelperModelPainId} > div > div`); // XXX div:nth-child(5)だと何故か取得できない
+        const $status = Finder.query('p', $elems[4]);
+        const result = $status.textContent || '';
+        return result.startsWith('Done') || result.endsWith('already existed') || false;
+      };
+
+      /**
+       * @param {{url: string, subdir: string, version: string, status: string}} model
+       * @return {Promise<boolean>}
+       */
+      const download = async model => {
+        if (!await infoDownload(model)) {
+          return false;
+        }
+
+        if (!await modelDownload(model)) {
+          return false;
+        }
+
+        return true;
+      };
+
+      while(true) {
+        /** @type {NodeListOf<HTMLTableRowElement>} */ // @ts-ignore
+        const $rows = Finder.queryAll('tbody > tr', $table);
+        /** @type {{$url: HTMLElement, $subdir: HTMLElement, $version: HTMLElement, $select: HTMLSelectElement} | null} */
+        let target = null;
+        for (const $row of $rows) {
+          const [$url, $subdir, $version, $status] = $row.cells;
+          /** @type {HTMLSelectElement} */ // @ts-ignore
+          const $select = Finder.query('select', $status);
+          if ($select.value === I18n.t.civitaiHelper.model.statuses.standby) {
+            target = {$url, $subdir, $version, $select};
+            break;
+          }
+        };
+
+        if (!target) {
+          break;
+        }
+
+        const model = {
+          url: target.$url.textContent || '',
+          subdir: target.$subdir.textContent || '',
+          version: target.$version.textContent || '',
+          status: target.$select.value,
+        };
+        Helper.selected(target.$select, I18n.t.civitaiHelper.model.statuses.processing);
+        const succeess = await download(model);
+        Helper.selected(target.$select, succeess ? I18n.t.civitaiHelper.model.statuses.complete : I18n.t.civitaiHelper.model.statuses.error);
+
+        await Core.sleep(1000);
+      }
+
+      console.log('download completed!');
+    }
+
+    /**
+     * @param {HTMLTableElement} $table
+     * @param {HTMLTextAreaElement} $textarea
+     */
+    clear($table, $textarea) {
+      this.clearTable($table);
+      this.clearTextarea($textarea);
+    }
+
+    /**
+     * @param {HTMLTableElement} $table
+     */
+    clearTable($table) {
+      const $body = Finder.query('tbody', $table);
+      $body.innerHTML = '';
+    }
+
+    /**
+     * @param {HTMLTextAreaElement} $textarea
+     */
+    clearTextarea($textarea) {
+      $textarea.value = '';
+      updateInput($textarea);
+    }
+
+    /**
+     * @param {HTMLTableElement} $table
+     * @param {HTMLTextAreaElement} $textarea
+     */
+    apply($table, $textarea) {
+      const lines = $textarea.value.split('\n') || [];
+      for (const line of lines) {
+        const [url, subdir_, version] = line.split(' ').filter(value => value.length);
+        const subdir = `\\${subdir_.split('\\').join()}`;
+        this.addReserve($table, {url, subdir, version: version || 'latent'});
+      }
+
+      $textarea.value = '';
+      updateInput($textarea);
+    }
+
+    /**
+     * @param {HTMLTableElement} $table
+     * @param {{url: string, subdir: string, version: string}} model
+     */
+    addReserve($table, model) {
+      const $row = Helper.tableRow();
+      const $url = Helper.tableCell();
+      const $subdir = Helper.tableCell();
+      const $version = Helper.tableCell();
+      const $status = Helper.tableCell();
+      $url.textContent = model.url;
+      $subdir.textContent = model.subdir;
+      $version.textContent = model.version;
+      const $select = Helper.select();
+      $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.standby));
+      $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.processing));
+      $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.complete));
+      $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.error));
+      $select.value = I18n.t.civitaiHelper.model.statuses.standby;
+      $status.appendChild($select);
+      $row.appendChild($url);
+      $row.appendChild($subdir);
+      $row.appendChild($version);
+      $row.appendChild($status);
+      const $body = Finder.query('tbody', $table);
+      $body.appendChild($row);
     }
   }
 
@@ -1346,7 +1762,8 @@ onUiLoaded(async () => {
     }
 
     const civitaiHelpers = [
-      CivitaiHelperAlignTools,
+      CivitaiHelperAlignToolsExecutor,
+      CivitaiHelperBulkDownloadExecutor,
     ];
     for (const ctor of civitaiHelpers) {
       new ctor('img2img').exec();
