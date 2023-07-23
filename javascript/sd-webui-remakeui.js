@@ -1487,11 +1487,14 @@ onUiLoaded(async () => {
      * @param {HTMLTextAreaElement} $textarea
      */
     apply($table, $textarea) {
-      const lines = $textarea.value.split('\n') || [];
+      const lines = ($textarea.value.split('\n') || []).filter(line => line.trim().length);
+      let prevSubdir = '';
       for (const line of lines) {
-        const [url, subdir_, version] = line.split(' ').filter(value => value.length);
-        const subdir = `\\${subdir_.split('\\').join()}`;
-        this.addReserve($table, {url, subdir, version: version || 'latent'});
+        const [url, orgSubdir, orgVersion] = line.split(' ').filter(value => value.length);
+        const subdir = `\\${(orgSubdir || prevSubdir).split('\\').join()}`;
+        const version = orgVersion || 'latent';
+        this.addReserve($table, {url, subdir, version});
+        prevSubdir = subdir;
       }
 
       $textarea.value = '';
