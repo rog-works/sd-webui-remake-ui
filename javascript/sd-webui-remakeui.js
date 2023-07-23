@@ -357,11 +357,14 @@ onUiLoaded(async () => {
     /** @return {HTMLElement} */
     get extraNetworks() { return Finder.by(this.id('txt2img_extra_networks')); }
 
-    /** @return {HTMLElement} */ // @ts-ignore
-    get extraNetworksRefresh() { return Finder.by(this.id('txt2img_extra_close')).nextElementSibling; }
+    /** @return {HTMLElement} */
+    get extraNetworksRefresh() { return Finder.by(this.id('txt2img_extra_refresh')); }
 
-    /** @return {HTMLTextAreaElement} */ // @ts-ignore
-    get extraNetworksSearchText() { return Finder.query(this.id('#txt2img_extra_tabs > div > textarea')); }
+    /** @return {HTMLElement} */ // @ts-ignore
+    get extraNetworksRefreshCivitai() { return Finder.by(this.id('txt2img_extra_close')).nextElementSibling; }
+
+    /** @return {NodeListOf<HTMLElement>} */
+    get extraNetworksTabs() { return Finder.queryAll('div.tabitem', Finder.by(this.id('txt2img_extra_tabs'))); }
 
     /** @return {HTMLElement} */
     get loraCards() { return Finder.by(this.id('txt2img_lora_cards')); }
@@ -411,6 +414,9 @@ onUiLoaded(async () => {
     /** @return {string} */
     get loraCardHoverId() { return this.id('txt2img_lora_card_hover'); }
 
+    /** @return {string} */
+    get loraCardRefreshId() { return this.id('txt2img_lora_card_refresh'); }
+
     /** @return {HTMLElement} */
     get genTools() { return Finder.by(this.genToolsId); }
 
@@ -422,6 +428,9 @@ onUiLoaded(async () => {
 
     /** @return {HTMLElement} */
     get loraCardHover() { return Finder.by(this.loraCardHoverId); }
+
+    /** @return {HTMLButtonElement} */ // @ts-ignore
+    get loraCardRefresh() { return Finder.by(this.loraCardRefreshId); }
   }
 
   class Executor {
@@ -934,10 +943,46 @@ onUiLoaded(async () => {
      * @access private
      */
     makeRefresh() {
+      const beforeRefresh = () => {
+        const $newRefresh = this.newModules.loraCardRefresh;
+        $newRefresh.disabled = true;
+        $newRefresh.classList.add('disabled', 'dark');
+        this.modules.extraNetworksRefresh.click();
+      }
+
+      /**
+       * @returns {Promise<void>}
+       */
+      const waitUntilRefresh = async () => {
+        const $tab = this.modules.extraNetworksTabs[0];
+        let timeout = 0;
+        while(timeout < 5000) {
+          await Core.sleep(100);
+
+          const $loading = Finder.query('div > div > div.wrap', $tab);
+          if ($loading.classList.contains('opacity-0')) {
+            return;
+          }
+
+          timeout = timeout + 100;
+        }
+
+        console.warn('refresh wait timedout.');
+      }
+
+      const postRefresh = () => {
+        this.modules.extraNetworksRefreshCivitai.click();
+      }
+
       const $refresh = Helper.button();
+      $refresh.id = this.newModules.loraCardRefreshId;
       $refresh.style.margin = '0px'; // XXX
       $refresh.textContent = I18n.t.lora.refresh;
-      $refresh.addEventListener('click', () => {
+      $refresh.addEventListener('click', async () => {
+        beforeRefresh();
+        await waitUntilRefresh();
+        postRefresh();
+
         const $container = this.$$container;
         $container.removeChild(this.$$contents);
         $container.appendChild(this.makeContents());
