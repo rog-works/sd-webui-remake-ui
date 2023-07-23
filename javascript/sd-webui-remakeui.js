@@ -1314,7 +1314,7 @@ onUiLoaded(async () => {
       const $button = Helper.button();
       $button.textContent = I18n.t.civitaiHelper.model.actions.clear;
       $button.addEventListener('click', () => {
-        this.clear($table, $textarea);
+        this.clearTable($table);
       });
 
       return $button;
@@ -1491,7 +1491,7 @@ onUiLoaded(async () => {
       let prevSubdir = '';
       for (const line of lines) {
         const [url, orgSubdir, orgVersion] = line.split(' ').filter(value => value.length);
-        const subdir = `\\${(orgSubdir || prevSubdir).split('\\').join()}`;
+        const subdir = `\\${(orgSubdir || prevSubdir).split('\\').join('')}`;
         const version = orgVersion || 'latent';
         this.addReserve($table, {url, subdir, version});
         prevSubdir = subdir;
