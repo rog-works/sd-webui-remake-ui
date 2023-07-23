@@ -481,10 +481,7 @@ onUiLoaded(async () => {
     get civitaiHelper() { return Finder.by(this.id('tab_civitai_helper')); }
 
     /** @return {string} */
-    get civitaiHelperModelPainId() { return this.id('civitai_helper_model_pain'); }
-
-    /** @return {HTMLElement} */
-    get civitaiHelperModelPain() { return Finder.by(this.id(this.civitaiHelperModelPainId)); }
+    get civitaiHelperModelSectionId() { return this.id('civitai_helper_model_pain'); }
 
     /** @return {HTMLElement} */
     get tagSelectorContainer() { return Finder.by(this.id('interactive-tag-selector')); }
@@ -524,6 +521,9 @@ onUiLoaded(async () => {
 
     /** @return {string} */
     get loraCardRefreshId() { return this.id('txt2img_lora_card_refresh'); }
+
+    /** @return {string} */
+    get civitaiHelperBulkDownloadSectionId() { return this.id('civitai_helper_bulk_download_pain'); }
 
     /** @return {HTMLElement} */
     get genTools() { return Finder.by(this.genToolsId); }
@@ -1197,24 +1197,29 @@ onUiLoaded(async () => {
     exec() {
       const $pain = this.modules.civitaiHelper;
       const $container = Finder.query('div', $pain);
-      const [$scan, $info, $model, $bulkScan, ..._] = Finder.queryAll(`#${$pain.id} > div > div`);
+      const [$scan, $info, $model, ...$remains] = Finder.queryAll(`#${$pain.id} > div > div`);
 
       // @see CivitaiHelperBulkDownloadExecutor
-      $model.id = this.modules.civitaiHelperModelPainId;
+      $model.id = this.modules.civitaiHelperModelSectionId;
 
-      const $row1 = Helper.div();
-      $row1.classList.add('flex', 'row');
-      $row1.appendChild($model);
-      $row1.appendChild($info);
+      const $left = Helper.div();
+      $left.appendChild($model);
+      $left.appendChild($info);
+      $left.appendChild($scan);
+      for (const $sections of $remains) {
+        $left.appendChild($sections);
+      }
 
-      const $row2 = Helper.div();
-      $row2.classList.add('flex', 'row');
-      $row2.appendChild($scan);
-      $row2.appendChild($bulkScan);
+      const $right = Helper.div();
+      $right.id = this.newModules.civitaiHelperBulkDownloadSectionId;
+      $right.classList.add('gr-block', 'gr-box', 'relative', 'w-full', 'border-solid', 'border', 'border-gray-200', 'gr-padded');
 
-      $pain.appendChild($row1);
-      $pain.appendChild($row2);
-      $pain.appendChild($container);
+      const $row = Helper.div();
+      $row.classList.add('flex', 'row');
+      $row.appendChild($left);
+      $row.appendChild($right);
+
+      $container.appendChild($row);
     }
   }
 
@@ -1223,15 +1228,13 @@ onUiLoaded(async () => {
      * @override
      */
     exec() {
-      const $container = Helper.div();
+      const $container = Finder.by(this.newModules.civitaiHelperBulkDownloadSectionId);
       const $table = this.makeTable();
       const $textarea = this.makeTextarea();
       const $tools = this.makeTools($table, $textarea);
       $container.appendChild($tools);
       $container.appendChild($textarea);
       $container.appendChild($table);
-      const $pain = this.modules.civitaiHelperModelPain;
-      $pain.appendChild($container);
     }
 
     /**
@@ -1269,7 +1272,7 @@ onUiLoaded(async () => {
       const $tools = Helper.buttonContainer();
       const $runButton = this.makeRunButton($table);
       const $applyButton = this.makeApplyButton($table, $textarea);
-      const $clearButton = this.makeClearButton($table, $textarea);
+      const $clearButton = this.makeClearButton($table);
       $tools.appendChild($runButton);
       $tools.appendChild($applyButton);
       $tools.appendChild($clearButton);
@@ -1307,10 +1310,9 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLTableElement} $table
-     * @param {HTMLTextAreaElement} $textarea
      * @returns {HTMLButtonElement}
      */
-    makeClearButton($table, $textarea) {
+    makeClearButton($table) {
       const $button = Helper.button();
       $button.textContent = I18n.t.civitaiHelper.model.actions.clear;
       $button.addEventListener('click', () => {
@@ -1332,7 +1334,7 @@ onUiLoaded(async () => {
         while(timeout < 5000) {
           await Core.sleep(100);
 
-          const $wrap = Finder.query(`#${this.modules.civitaiHelperModelPainId} > div > div:nth-child(4) div.wrap`);
+          const $wrap = Finder.query(`#${this.modules.civitaiHelperModelSectionId} > div > div:nth-child(4) div.wrap`);
           if ($wrap.classList.contains('opacity-0')) {
             return true;
           }
@@ -1350,7 +1352,7 @@ onUiLoaded(async () => {
         while(timeout < 10 * 60 * 1000) {
           await Core.sleep(1000);
 
-          const $elems = Finder.queryAll(`#${this.modules.civitaiHelperModelPainId} > div > div`); // XXX div:nth-child(5)だと何故か取得できない
+          const $elems = Finder.queryAll(`#${this.modules.civitaiHelperModelSectionId} > div > div`); // XXX div:nth-child(5)だと何故か取得できない
           const $wrap = Finder.query('div.wrap', $elems[4]);
           if ($wrap.classList.contains('opacity-0')) {
             return true;
@@ -1366,7 +1368,7 @@ onUiLoaded(async () => {
        * @return {Promise<boolean>}
        */
       const infoDownload = async (model) => {
-        const $info = Finder.query(`#${this.modules.civitaiHelperModelPainId} > div > div:nth-child(2)`);
+        const $info = Finder.query(`#${this.modules.civitaiHelperModelSectionId} > div > div:nth-child(2)`);
         /** @type {HTMLTextAreaElement} */ // @ts-ignore
         const $url = Finder.query('textarea', $info);
         /** @type {HTMLButtonElement} */ // @ts-ignore
@@ -1384,7 +1386,7 @@ onUiLoaded(async () => {
        * @return {Promise<boolean>}
        */
       const modelDownload = async (model) => {
-        const $model = Finder.query(`#${this.modules.civitaiHelperModelPainId} > div > div:nth-child(4)`);
+        const $model = Finder.query(`#${this.modules.civitaiHelperModelSectionId} > div > div:nth-child(4)`);
         /** @type {HTMLSelectElement} */ // @ts-ignore
         const $subdir = Finder.query('div:nth-child(2) select', $model);
         /** @type {HTMLSelectElement} */ // @ts-ignore
@@ -1394,13 +1396,13 @@ onUiLoaded(async () => {
         await Core.sleep(10); // XXX DOM更新待ちのsleep
 
         /** @type {HTMLButtonElement} */ // @ts-ignore
-        const $button = Finder.query(`#${this.modules.civitaiHelperModelPainId} > div > button`);
+        const $button = Finder.query(`#${this.modules.civitaiHelperModelSectionId} > div > button`);
         $button.click();
         if (!await waitUntilModelDownload()) {
           return false;
         }
 
-        const $elems = Finder.queryAll(`#${this.modules.civitaiHelperModelPainId} > div > div`); // XXX div:nth-child(5)だと何故か取得できない
+        const $elems = Finder.queryAll(`#${this.modules.civitaiHelperModelSectionId} > div > div`); // XXX div:nth-child(5)だと何故か取得できない
         const $status = Finder.query('p', $elems[4]);
         const result = $status.textContent || '';
         return result.startsWith('Done') || result.endsWith('already existed') || false;
@@ -1415,6 +1417,8 @@ onUiLoaded(async () => {
           return false;
         }
 
+        await Core.sleep(1000);// 対向システムへの負荷軽減
+
         if (!await modelDownload(model)) {
           return false;
         }
@@ -1425,10 +1429,14 @@ onUiLoaded(async () => {
       while(true) {
         /** @type {NodeListOf<HTMLTableRowElement>} */ // @ts-ignore
         const $rows = Finder.queryAll('tbody > tr', $table);
-        /** @type {{$url: HTMLElement, $subdir: HTMLElement, $version: HTMLElement, $select: HTMLSelectElement} | null} */
+        /** @type {{$url: HTMLElement, $subdir: HTMLTextAreaElement, $version: HTMLTextAreaElement, $select: HTMLSelectElement} | null} */
         let target = null;
         for (const $row of $rows) {
-          const [$url, $subdir, $version, $status] = $row.cells;
+          const [$url, $subdir_, $version_, $status] = $row.cells;
+          /** @type {HTMLTextAreaElement} */ // @ts-ignore
+          const $subdir = Finder.query('textarea', $subdir_);
+          /** @type {HTMLTextAreaElement} */ // @ts-ignore
+          const $version = Finder.query('textarea', $version_);
           /** @type {HTMLSelectElement} */ // @ts-ignore
           const $select = Finder.query('select', $status);
           if ($select.value === I18n.t.civitaiHelper.model.statuses.standby) {
@@ -1443,15 +1451,15 @@ onUiLoaded(async () => {
 
         const model = {
           url: target.$url.textContent || '',
-          subdir: target.$subdir.textContent || '',
-          version: target.$version.textContent || '',
+          subdir: target.$subdir.value || '',
+          version: target.$version.value || '',
           status: target.$select.value,
         };
         Helper.selected(target.$select, I18n.t.civitaiHelper.model.statuses.processing);
         const succeess = await download(model);
         Helper.selected(target.$select, succeess ? I18n.t.civitaiHelper.model.statuses.complete : I18n.t.civitaiHelper.model.statuses.error);
 
-        await Core.sleep(1000);
+        await Core.sleep(5000);// 対向システムへの負荷軽減
       }
 
       console.log('download completed!');
@@ -1511,9 +1519,15 @@ onUiLoaded(async () => {
       const $subdir = Helper.tableCell();
       const $version = Helper.tableCell();
       const $status = Helper.tableCell();
+      const $subdirText = Helper.textbox();
+      const $versionText = Helper.textbox();
       $url.textContent = model.url;
-      $subdir.textContent = model.subdir;
-      $version.textContent = model.version;
+      $subdirText.value = model.subdir;
+      $versionText.value = model.version;
+      updateInput($subdirText);
+      updateInput($versionText);
+      $subdir.appendChild($subdirText);
+      $version.appendChild($versionText);
       const $select = Helper.select();
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.standby));
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.processing));
