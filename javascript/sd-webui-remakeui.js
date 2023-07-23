@@ -312,7 +312,8 @@ onUiLoaded(async () => {
       civitaiHelper: {
         model: {
           headers: {
-            url: 'URL',
+            baseUrl: 'Base URL',
+            path: 'Path',
             subdir: 'Sub Folder',
             version: 'Version',
             status: 'Status',
@@ -1245,7 +1246,8 @@ onUiLoaded(async () => {
       const $header = Helper.tableHeader();
       const $body = Helper.tableBody();
       const $headerRow = Helper.tableRow();
-      $headerRow.appendChild(Helper.tableHeaderCell(I18n.t.civitaiHelper.model.headers.url));
+      $headerRow.appendChild(Helper.tableHeaderCell(I18n.t.civitaiHelper.model.headers.baseUrl));
+      $headerRow.appendChild(Helper.tableHeaderCell(I18n.t.civitaiHelper.model.headers.path));
       $headerRow.appendChild(Helper.tableHeaderCell(I18n.t.civitaiHelper.model.headers.subdir));
       $headerRow.appendChild(Helper.tableHeaderCell(I18n.t.civitaiHelper.model.headers.version));
       $headerRow.appendChild(Helper.tableHeaderCell(I18n.t.civitaiHelper.model.headers.status));
@@ -1372,7 +1374,7 @@ onUiLoaded(async () => {
       }
 
       /**
-       * @param {{url: string, subdir: string, version: string, status: string}} model
+       * @param {{baseUrl: string, path: string, subdir: string, version: string, status: string}} model
        * @return {Promise<boolean>}
        */
       const infoDownload = async (model) => {
@@ -1381,7 +1383,7 @@ onUiLoaded(async () => {
         const $url = Finder.query('textarea', $info);
         /** @type {HTMLButtonElement} */ // @ts-ignore
         const $button = Finder.query('button', $info);
-        $url.value = model.url;
+        $url.value = model.baseUrl;
         updateInput($url);
         await Core.sleep(10); // XXX DOM更新待ちのsleep
 
@@ -1390,7 +1392,7 @@ onUiLoaded(async () => {
       }
 
       /**
-       * @param {{url: string, subdir: string, version: string, status: string}} model
+       * @param {{baseUrl: string, path: string, subdir: string, version: string, status: string}} model
        * @return {Promise<boolean>}
        */
       const modelDownload = async (model) => {
@@ -1417,7 +1419,7 @@ onUiLoaded(async () => {
       };
 
       /**
-       * @param {{url: string, subdir: string, version: string, status: string}} model
+       * @param {{baseUrl: string, path: string, subdir: string, version: string, status: string}} model
        * @return {Promise<boolean>}
        */
       const download = async model => {
@@ -1439,10 +1441,10 @@ onUiLoaded(async () => {
       while(true) {
         /** @type {NodeListOf<HTMLTableRowElement>} */ // @ts-ignore
         const $rows = Finder.queryAll('tbody > tr', $table);
-        /** @type {{$url: HTMLElement, $subdir: HTMLTextAreaElement, $version: HTMLTextAreaElement, $status: HTMLSelectElement} | null} */
+        /** @type {{$baseUrl: HTMLElement, $path: HTMLElement, $subdir: HTMLTextAreaElement, $version: HTMLTextAreaElement, $status: HTMLSelectElement} | null} */
         let target = null;
         for (const $row of $rows) {
-          const [$url, $subdir_, $version_, $status_] = $row.cells;
+          const [$baseUrl, $path, $subdir_, $version_, $status_] = $row.cells;
           /** @type {HTMLTextAreaElement} */ // @ts-ignore
           const $subdir = Finder.query('textarea', $subdir_);
           /** @type {HTMLTextAreaElement} */ // @ts-ignore
@@ -1450,7 +1452,7 @@ onUiLoaded(async () => {
           /** @type {HTMLSelectElement} */ // @ts-ignore
           const $status = Finder.query('select', $status_);
           if ($status.value === I18n.t.civitaiHelper.model.statuses.standby) {
-            target = {$url, $subdir, $version, $status};
+            target = {$baseUrl, $path, $subdir, $version, $status};
             break;
           }
         };
@@ -1460,7 +1462,8 @@ onUiLoaded(async () => {
         }
 
         const model = {
-          url: target.$url.textContent || '',
+          baseUrl: target.$baseUrl.textContent || '',
+          path: target.$path.textContent || '',
           subdir: target.$subdir.value,
           version: target.$version.value,
           status: target.$status.value,
@@ -1512,8 +1515,12 @@ onUiLoaded(async () => {
      * @param {{url: string, subdir: string, version: string}} model
      */
     addReserve($table, model) {
-      const $url = Helper.tableCell();
-      $url.textContent = model.url;
+      const [_, baseUrl, path] = model.url.match(/(https:\/\/civitai.com\/models\/\d+)(.*)/) || [];
+      const $baseUrl = Helper.tableCell();
+      $baseUrl.textContent = baseUrl || '';
+
+      const $path = Helper.tableCell();
+      $path.textContent = path || '';
 
       const $subdir = Helper.tableCell();
       const $subdirText = Helper.textbox();
@@ -1533,11 +1540,12 @@ onUiLoaded(async () => {
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.processing));
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.complete));
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.error));
-      $select.value = I18n.t.civitaiHelper.model.statuses.standby;
+      $select.value = baseUrl ? I18n.t.civitaiHelper.model.statuses.standby : I18n.t.civitaiHelper.model.statuses.error;
       $status.appendChild($select);
 
       const $row = Helper.tableRow();
-      $row.appendChild($url);
+      $row.appendChild($baseUrl);
+      $row.appendChild($path);
       $row.appendChild($subdir);
       $row.appendChild($version);
       $row.appendChild($status);
