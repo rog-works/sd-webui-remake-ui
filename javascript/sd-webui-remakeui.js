@@ -1515,6 +1515,29 @@ onUiLoaded(async () => {
      * @param {{url: string, subdir: string, version: string}} model
      */
     addReserve($table, model) {
+      /**
+       * @param {string} initialValue
+       * @returns {[boolean, HTMLSelectElement]}
+       */
+      const makeSubdirSelect = (initialValue) => {
+        const $subdirs = Finder.queryAll('button', this.modules.loraSubDirs);
+        const $select = Helper.select();
+        let selected = false;
+        for (const $subdir of $subdirs) {
+          const subdir = `\\${($subdir.textContent || '').trim().split('/').join('')}`;
+          if (subdir === '\\all') {
+            continue;
+          }
+
+          const $option = Helper.option(subdir);
+          $option.selected = $option.value === initialValue;
+          selected = selected || $option.selected;
+          $select.options.add($option);
+        }
+
+        return [selected, $select];
+      }
+
       const [_, baseUrl, path] = model.url.match(/(https:\/\/civitai.com\/models\/\d+)(.*)/) || [];
       const $baseUrl = Helper.tableCell();
       $baseUrl.textContent = baseUrl || '';
@@ -1523,10 +1546,8 @@ onUiLoaded(async () => {
       $path.textContent = path || '';
 
       const $subdir = Helper.tableCell();
-      const $subdirText = Helper.textbox();
-      $subdirText.value = model.subdir;
-      updateInput($subdirText);
-      $subdir.appendChild($subdirText);
+      const [subdirExists, $subdirSelect] = makeSubdirSelect(model.subdir);
+      $subdir.appendChild($subdirSelect);
 
       const $version = Helper.tableCell();
       const $versionText = Helper.textbox();
@@ -1540,7 +1561,7 @@ onUiLoaded(async () => {
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.processing));
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.complete));
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.error));
-      $select.value = baseUrl ? I18n.t.civitaiHelper.model.statuses.standby : I18n.t.civitaiHelper.model.statuses.error;
+      $select.value = baseUrl && subdirExists ? I18n.t.civitaiHelper.model.statuses.standby : I18n.t.civitaiHelper.model.statuses.error;
       $status.appendChild($select);
 
       const $row = Helper.tableRow();
