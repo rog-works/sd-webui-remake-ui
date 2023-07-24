@@ -1441,12 +1441,12 @@ onUiLoaded(async () => {
       while(true) {
         /** @type {NodeListOf<HTMLTableRowElement>} */ // @ts-ignore
         const $rows = Finder.queryAll('tbody > tr', $table);
-        /** @type {{$baseUrl: HTMLElement, $path: HTMLElement, $subdir: HTMLTextAreaElement, $version: HTMLTextAreaElement, $status: HTMLSelectElement} | null} */
+        /** @type {{$baseUrl: HTMLElement, $path: HTMLElement, $subdir: HTMLSelectElement, $version: HTMLTextAreaElement, $status: HTMLSelectElement} | null} */
         let target = null;
         for (const $row of $rows) {
           const [$baseUrl, $path, $subdir_, $version_, $status_] = $row.cells;
-          /** @type {HTMLTextAreaElement} */ // @ts-ignore
-          const $subdir = Finder.query('textarea', $subdir_);
+          /** @type {HTMLSelectElement} */ // @ts-ignore
+          const $subdir = Finder.query('select', $subdir_);
           /** @type {HTMLTextAreaElement} */ // @ts-ignore
           const $version = Finder.query('textarea', $version_);
           /** @type {HTMLSelectElement} */ // @ts-ignore
