@@ -606,6 +606,33 @@ onUiLoaded(async () => {
     }
   }
 
+  class TabAlignExecutor extends Executor {
+    /**
+     * @override
+     */
+    exec() {
+      const [$txt2img, $img2img, $extra, $pngInfo, $merger, $train, $civitai, $openpose, $networks, $tagEditor, $tagger, $settings, $extensions] = Finder.queryAll('#tabs > div > button');
+      const $tabs = {$txt2img, $img2img, $extra, $pngInfo, $merger, $train, $civitai, $openpose, $networks, $tagEditor, $tagger, $settings, $extensions};
+
+      Helper.hide($tabs.$networks);
+      Helper.hide($tabs.$merger);
+      Helper.hide($tabs.$extra);
+
+      // XXX 再配置できないので一旦コメントアウト
+      // const $container = Finder.query('#tabs > div');
+      // $container.appendChild($tabs.$txt2img);
+      // $container.appendChild($tabs.$img2img);
+      // $container.appendChild($tabs.$civitai);
+      // $container.appendChild($tabs.$pngInfo);
+      // $container.appendChild($tabs.$openpose);
+      // $container.appendChild($tabs.$train);
+      // $container.appendChild($tabs.$tagger);
+      // $container.appendChild($tabs.$tagEditor);
+      // $container.appendChild($tabs.$settings);
+      // $container.appendChild($tabs.$extensions);
+    }
+  }
+
   class AlignSettingsExecutor extends Executor {
     /**
      * @override
@@ -1810,12 +1837,19 @@ onUiLoaded(async () => {
       new ctor('img2img').exec();
     }
 
+    const others = [
+      TabAlignExecutor,
+    ];
+    for (const ctor of others) {
+      new ctor('txt2img').exec();
+    }
+
     const civitaiHelpers = [
       CivitaiHelperAlignToolsExecutor,
       CivitaiHelperBulkDownloadExecutor,
     ];
     for (const ctor of civitaiHelpers) {
-      new ctor('img2img').exec();
+      new ctor('txt2img').exec();
     }
 
     console.log('remake ui successfull!');
