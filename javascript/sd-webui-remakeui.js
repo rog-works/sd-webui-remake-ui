@@ -1528,7 +1528,7 @@ onUiLoaded(async () => {
       let prevSubdir = '';
       for (const line of lines) {
         const [url, orgSubdir, orgVersion] = line.split(' ').filter(value => value.length);
-        const subdir = `\\${(orgSubdir || prevSubdir).split('\\').join('')}`;
+        const subdir = `\\${(orgSubdir || prevSubdir).split('/').filter(word => word.length).join('\\')}`;
         const version = orgVersion || 'latent';
         this.addReserve($table, {url, subdir, version});
         prevSubdir = subdir;
@@ -1551,7 +1551,7 @@ onUiLoaded(async () => {
         const $select = Helper.select();
         let selected = false;
         for (const $subdir of $subdirs) {
-          const subdir = `\\${($subdir.textContent || '').trim().split('/').join('')}`;
+          const subdir = `\\${($subdir.textContent || '').trim().split('/').filter(word => word.length).join('\\')}`;
           if (subdir === '\\all') {
             continue;
           }
