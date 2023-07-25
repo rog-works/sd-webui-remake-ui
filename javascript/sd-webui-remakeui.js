@@ -1531,7 +1531,7 @@ onUiLoaded(async () => {
         const subdir = `\\${(orgSubdir || prevSubdir).split('/').filter(word => word.length).join('\\')}`;
         const version = orgVersion || 'latent';
         this.addReserve($table, {url, subdir, version});
-        prevSubdir = subdir;
+        prevSubdir = subdir.split('\\').join('/');
       }
 
       this.clearTextarea($textarea);
