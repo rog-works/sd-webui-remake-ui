@@ -615,7 +615,7 @@ onUiLoaded(async () => {
       const $tabs = {$txt2img, $img2img, $extra, $pngInfo, $merger, $train, $civitai, $openpose, $networks, $tagEditor, $tagger, $settings, $extensions};
 
       Helper.hide($tabs.$networks);
-      Helper.hide($tabs.$merger);
+      // Helper.hide($tabs.$merger);
       Helper.hide($tabs.$extra);
 
       // XXX 再配置できないので一旦コメントアウト
