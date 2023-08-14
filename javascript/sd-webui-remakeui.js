@@ -308,6 +308,7 @@ onUiLoaded(async () => {
       lora: {
         newest: '新着順',
         refresh: '♻️',
+        swap: '🔁',
       },
       civitaiHelper: {
         model: {
@@ -951,16 +952,39 @@ onUiLoaded(async () => {
       $actions.style['flex-basis'] = '30%';
 
       const $orgActions = Finder.queryAll('.actions > .additional > ul > a', $card);
-      $orgActions.forEach(($orgAction) => {
+      for (const [index, $orgAction] of $orgActions.entries()) {
         const $action = Helper.button();
-        $action.textContent = $orgAction.textContent;
-        $action.addEventListener('click', e => {
-          e.stopPropagation();
-          e.preventDefault();
-          $orgAction.click();
-        });
+        if (index === 0) {
+          $action.textContent = I18n.t.lora.swap;
+          $action.addEventListener('click', e => {
+            e.stopPropagation();
+            e.preventDefault();
+            /** @type {HTMLTextAreaElement} */ // @ts-ignore
+            const $textarea = Finder.query('textarea', this.modules.prompt);
+            const pattern = '<([^:]+):([^:]+):([^>]+)>';
+            const matches = $textarea.value.match(new RegExp(pattern, 'g')) || [];
+            const contains = matches.filter(loraTag => {
+              const inMatches = loraTag.match(new RegExp(pattern));
+              return inMatches && inMatches[2] === $path.textContent;
+            }).length > 0;
+            if (!contains && matches.length > 0) {
+              const first = matches[0] || '';
+              const [, loraType, , loraWeight] = first.match(new RegExp(pattern)) || [];
+              $textarea.value = $textarea.value.replace(first, `<${loraType}:${$path.textContent}:${loraWeight}>`);
+              updateInput($textarea);
+            }
+          });
+        } else {
+          $action.textContent = $orgAction.textContent;
+          $action.addEventListener('click', e => {
+            e.stopPropagation();
+            e.preventDefault();
+            $orgAction.click();
+          });
+        }
+
         $actions.appendChild($action);
-      });
+      }
 
       const timeMatches = $thumb.src.match(/mtime=(\d+)/);
       const timestamp = timeMatches ? parseInt(timeMatches[1]) : 0;
