@@ -960,7 +960,8 @@ onUiLoaded(async () => {
       const $actions = Helper.div();
       $actions.style['flex-basis'] = '30%';
 
-      const $orgActions = Finder.queryAll('.actions > .additional > ul > a', $card);
+      // XXX CivitaiHelperのバグで更新時に4つ以上にボタンが増殖するため、先頭の4つだけ利用する
+      const $orgActions = Array.from(Finder.queryAll('.actions > .additional > ul > a', $card)).slice(0, 4);
       for (const [index, $orgAction] of $orgActions.entries()) {
         const $action = Helper.button();
         if (index === 0) {
