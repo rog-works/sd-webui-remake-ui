@@ -21,6 +21,10 @@ onUiLoaded(async () => {
     }
   }
 
+  class KeyCodes {
+    static Enter = 'Enter';
+  };
+
   class Finder {
     /**
      * @param {string} id
@@ -323,6 +327,7 @@ onUiLoaded(async () => {
             run: '▶️',
             apply: '↙️',
             clear: '×',
+            restore: '↩️',
           },
           statuses: {
             standby: 'StandBy',
@@ -1283,7 +1288,9 @@ onUiLoaded(async () => {
       const $container = Finder.by(this.newModules.civitaiHelperBulkDownloadSectionId);
       const $table = this.makeTable();
       const $textarea = this.makeTextarea();
-      const $tools = this.makeTools($table, $textarea);
+      const $buttons = this.makeButtons($table, $textarea);
+      const $tools = this.makeTools(Object.values($buttons));
+      this.handleKeydown($textarea, $buttons.run, $buttons.apply);
       $container.appendChild($tools);
       $container.appendChild($textarea);
       $container.appendChild($table);
@@ -1313,22 +1320,34 @@ onUiLoaded(async () => {
      */
     makeTextarea() {
       const $textarea = Helper.textarea();
+      $textarea.style['min-height'] = '250px';
       return $textarea;
     }
 
     /**
      * @param {HTMLTableElement} $table
      * @param {HTMLTextAreaElement} $textarea
+     * @returns {{run: HTMLButtonElement, apply: HTMLButtonElement, clear: HTMLButtonElement, restore: HTMLButtonElement}}
+     */
+    makeButtons($table, $textarea) {
+      const $runButton = this.makeRunButton($table);
+      return {
+        run: $runButton,
+        apply: this.makeApplyButton($table, $textarea),
+        clear: this.makeClearButton($table),
+        restore: this.makeRestoreButton($runButton),
+      };
+    }
+
+    /**
+     * @param {HTMLButtonElement[]} $buttons
      * @returns {HTMLElement}
      */
-    makeTools($table, $textarea) {
+    makeTools($buttons) {
       const $tools = Helper.buttonContainer();
-      const $runButton = this.makeRunButton($table);
-      const $applyButton = this.makeApplyButton($table, $textarea);
-      const $clearButton = this.makeClearButton($table);
-      $tools.appendChild($runButton);
-      $tools.appendChild($applyButton);
-      $tools.appendChild($clearButton);
+      for (const $button of $buttons) {
+        $tools.appendChild($button);
+      }
       return $tools;
     }
 
@@ -1348,7 +1367,6 @@ onUiLoaded(async () => {
         $button.disabled = false;
         $button.classList.remove('disabled', 'dark');
       });
-
       return $button;
     }
 
@@ -1363,7 +1381,6 @@ onUiLoaded(async () => {
       $button.addEventListener('click', () => {
         this.apply($table, $textarea);
       });
-
       return $button;
     }
 
@@ -1377,8 +1394,38 @@ onUiLoaded(async () => {
       $button.addEventListener('click', () => {
         this.clearTable($table);
       });
-
       return $button;
+    }
+
+    /**
+     * @param {HTMLButtonElement} $runButton
+     * @returns {HTMLButtonElement}
+     */
+    makeRestoreButton($runButton) {
+      const $button = Helper.button();
+      $button.textContent = I18n.t.civitaiHelper.model.actions.restore;
+      $button.addEventListener('click', () => {
+        $runButton.disabled = false;
+        $runButton.classList.remove('disabled', 'dark');
+      });
+      return $button;
+    }
+
+    /**
+     * @param {HTMLTextAreaElement} $textarea
+     * @param {HTMLButtonElement} $runButton
+     * @param {HTMLButtonElement} $applyButton
+     */
+    handleKeydown($textarea, $runButton, $applyButton) {
+      $textarea.addEventListener('keydown', e => {
+        if (e.key === KeyCodes.Enter && e.ctrlKey) {
+          if ($textarea.value.length === 0) {
+            $runButton.click();
+          } else {
+            $applyButton.click();
+          }
+        }
+      });
     }
 
     /**
