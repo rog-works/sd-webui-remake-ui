@@ -314,6 +314,10 @@ onUiLoaded(async () => {
         refresh: '♻️',
         swap: '🔁',
       },
+      aspectTools: {
+        x23: '2:3',
+        x11: '1:1',
+      },
       civitaiHelper: {
         model: {
           headers: {
@@ -1210,40 +1214,67 @@ onUiLoaded(async () => {
      * @override
      */
     exec() {
-      const $button = Helper.button();
-      $button.textContent = '2:3';
-      $button.addEventListener('click', () => {
-        const presets = [
-          '512x768',
-          '640x960',
-          '768x1152',
-          '896x1344',
-          '1024x1536',
-        ];
-        const $w = this.modules.widthSlider;
-        const $h = this.modules.heightSlider;
-        /** @type {HTMLInputElement} */ // @ts-ignore
-        const $wNumber = Finder.query('input[type="number"]',$w);
-        /** @type {HTMLInputElement} */ // @ts-ignore
-        const $hNumber = Finder.query('input[type="number"]',$h);
-        /** @type {HTMLInputElement} */ // @ts-ignore
-        const $wRange = Finder.query('input[type="range"]',$w);
-        /** @type {HTMLInputElement} */ // @ts-ignore
-        const $hRange = Finder.query('input[type="range"]',$h);
-        const current = `${$wNumber.value}x${$hNumber.value}`;
-        const index = presets.indexOf(current);
-        const [w, h] = presets[index === -1 ? 0 : (index + 1) % presets.length].split('x');
-        $wNumber.value = w;
-        $hNumber.value = h;
-        $wRange.value = w;
-        $hRange.value = h;
-        updateInput($wNumber);
-        updateInput($hNumber);
-        updateInput($wRange);
-        updateInput($hRange);
-      });
+      const $2x3Button = Helper.button();
+      $2x3Button.textContent = I18n.t.aspectTools.x23;
+      $2x3Button.addEventListener('click', this.handle2x3.bind(this));
 
-      this.modules.tools.appendChild($button);
+      const $1x1Button = Helper.button();
+      $1x1Button.textContent = I18n.t.aspectTools.x11;
+      $1x1Button.addEventListener('click', this.handle1x1.bind(this));
+
+      this.modules.tools.appendChild($2x3Button);
+      this.modules.tools.appendChild($1x1Button);
+    }
+
+    /**
+     * @private
+     */
+    handle2x3() {
+      this.changeAspect([
+        '512x768',
+        '640x960',
+        '768x1152',
+        '896x1344',
+        '1024x1536',
+      ]);
+    }
+
+    handle1x1() {
+      this.changeAspect([
+        '512x512',
+        '640x640',
+        '768x768',
+        '896x896',
+        '960x960',
+        '1024x1024',
+      ]);
+    }
+
+    /**
+     * @param {string[]} presets
+     */
+    changeAspect(presets) {
+      const $w = this.modules.widthSlider;
+      const $h = this.modules.heightSlider;
+      /** @type {HTMLInputElement} */ // @ts-ignore
+      const $wNumber = Finder.query('input[type="number"]',$w);
+      /** @type {HTMLInputElement} */ // @ts-ignore
+      const $hNumber = Finder.query('input[type="number"]',$h);
+      /** @type {HTMLInputElement} */ // @ts-ignore
+      const $wRange = Finder.query('input[type="range"]',$w);
+      /** @type {HTMLInputElement} */ // @ts-ignore
+      const $hRange = Finder.query('input[type="range"]',$h);
+      const current = `${$wNumber.value}x${$hNumber.value}`;
+      const index = presets.indexOf(current);
+      const [w, h] = presets[index === -1 ? 0 : (index + 1) % presets.length].split('x');
+      $wNumber.value = w;
+      $hNumber.value = h;
+      $wRange.value = w;
+      $hRange.value = h;
+      updateInput($wNumber);
+      updateInput($hNumber);
+      updateInput($wRange);
+      updateInput($hRange);
     }
   }
 
