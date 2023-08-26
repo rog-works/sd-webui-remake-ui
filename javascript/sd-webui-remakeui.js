@@ -242,6 +242,14 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLElement} $
+     * @param {boolean?} visible
+     */
+    static shown($, visible) {
+      $.style.display = visible === undefined || visible ? 'block' : 'none';
+    }
+
+    /**
+     * @param {HTMLElement} $
      */
     static hide($) {
       $.style.display = 'none';
@@ -791,7 +799,7 @@ onUiLoaded(async () => {
       const $contents = this.makeContents();
       const $container = this.makeContainer($space, $contents);
       const $overlay = this.makeOverlay($container);
-      this.handleClose($overlay, $space);
+      // this.handleClose($overlay, $space); XXX 一旦廃止
       this.handleOpen($overlay);
       this.alignOverlay($overlay);
     }
@@ -854,9 +862,11 @@ onUiLoaded(async () => {
       const $overlay = Helper.div();
       $overlay.id = `${this.mode}_new_lora`;
       $overlay.style.position = 'fixed';
-      $overlay.style.width = '100%';
+      // $overlay.style.width = '100%'; XXX 一旦廃止
+      $overlay.style.width = '50%';
       $overlay.style.height = '100%';
-      $overlay.style.left = '0';
+      // $overlay.style.left = '0'; XXX 一旦廃止
+      $overlay.style.right = '0';
       $overlay.style.top = '0';
       $overlay.style.margin = '0';
       $overlay.style.padding = '0';
@@ -1161,8 +1171,8 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @param {HTMLElement} $contents
      * @param {HTMLElement} $space
+     * @param {HTMLElement} $contents
      * @return {HTMLElement}
      * @access private
      */
@@ -1171,7 +1181,7 @@ onUiLoaded(async () => {
       $container.classList.add('flex', 'row', 'lora_container');
       $container.style.width = '100%';
       $container.style.height = '100%';
-      $container.appendChild($space);
+      // $container.appendChild($space); XXX 一旦廃止
       $container.appendChild($contents);
       return $container;
     }
@@ -1184,7 +1194,7 @@ onUiLoaded(async () => {
       const $button = Helper.button();
       $button.textContent = '🌐';
       $button.addEventListener('click', () => {
-        $overlay.style.display = 'block';
+        Helper.shown($overlay, $overlay.style.display !== 'block');
       });
 
       const $tools = this.modules.tools;
