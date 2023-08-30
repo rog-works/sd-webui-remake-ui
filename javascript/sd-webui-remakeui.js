@@ -242,6 +242,28 @@ onUiLoaded(async () => {
     }
 
     /**
+     * @return {HTMLDivElement}
+    */
+    static overlay() {
+      const $ = Helper.div();
+      $.style.position = 'fixed';
+      // $overlay.style.width = '100%'; XXX 一旦廃止
+      $.style.width = '50%';
+      $.style.height = '100%';
+      // $overlay.style.left = '0'; XXX 一旦廃止
+      $.style.right = '0';
+      $.style.top = '0';
+      $.style.margin = '0';
+      $.style.padding = '0';
+      $.style.border = '0';
+      $.style['min-width'] = 'initial';
+      $.style['min-height'] = 'initial';
+      $.style['z-index'] = 1001;
+      $.style.display = 'none';
+      return $;
+    }
+
+    /**
      * @param {HTMLElement} $
      * @param {boolean?} visible
      */
@@ -326,6 +348,13 @@ onUiLoaded(async () => {
       aspectTools: {
         x23: '2:3',
         x11: '1:1',
+      },
+      scripts: {
+        blockWeight: 'BW',
+        adetailer: 'AD',
+        additionalNetworks: 'AN',
+        controlNet: 'CN',
+        script: 'SC',
       },
       civitaiHelper: {
         model: {
@@ -496,6 +525,9 @@ onUiLoaded(async () => {
 
     /** @return {HTMLElement} */
     get scripts() { return Finder.by(this.id('txt2img_script_container')); }
+
+    /** @return {NodeListOf<HTMLElement>} */
+    get scriptEntries() { return Finder.queryAll(`#${this.id('txt2img_script_container')} > div`); }
 
     /** @return {HTMLElement} */
     get civitaiHelper() { return Finder.by(this.id('tab_civitai_helper')); }
@@ -690,14 +722,22 @@ onUiLoaded(async () => {
      * @override
      */
     exec() {
-      this.alignOpen();
-      this.alignContainer();
+      const $overlay = this.makeOverlay();
+      this.alignButton();
+      this.alignContainer($overlay);
+      this.handleOpenClose($overlay);
+    }
+
+    makeOverlay() {
+      const $overlay = Helper.overlay();
+      $overlay.style['overflow-y'] = 'scroll';
+      return $overlay;
     }
 
     /**
      * @access private
      */
-    alignOpen() {
+    alignButton() {
       const $open = this.modules.tagSelectorButton;
       $open.textContent = I18n.t.tagSelector.open;
 
@@ -705,10 +745,23 @@ onUiLoaded(async () => {
     }
 
     /**
+     * @param {HTMLElement} $overlay
      * @access private
      */
-    alignContainer() {
-      this.modules.hiresFix.after(this.modules.tagSelectorContainer);
+    alignContainer($overlay) {
+      $overlay.appendChild(this.modules.tagSelectorContainer);
+      this.modules.pain.appendChild($overlay);
+    }
+
+    /**
+     * @param {HTMLElement} $overlay
+     * @access private
+     */
+    handleOpenClose($overlay) {
+      const $button = this.modules.tagSelectorButton;
+      $button.addEventListener('click', () => {
+        Helper.shown($overlay, $overlay.style.display !== 'block');
+      });
     }
   }
 
@@ -861,22 +914,8 @@ onUiLoaded(async () => {
      * @access private
      */
     makeOverlay($container) {
-      const $overlay = Helper.div();
+      const $overlay = Helper.overlay();
       $overlay.id = `${this.mode}_new_lora`;
-      $overlay.style.position = 'fixed';
-      // $overlay.style.width = '100%'; XXX 一旦廃止
-      $overlay.style.width = '50%';
-      $overlay.style.height = '100%';
-      // $overlay.style.left = '0'; XXX 一旦廃止
-      $overlay.style.right = '0';
-      $overlay.style.top = '0';
-      $overlay.style.margin = '0';
-      $overlay.style.padding = '0';
-      $overlay.style.border = '0';
-      $overlay.style['min-width'] = 'initial';
-      $overlay.style['min-height'] = 'initial';
-      $overlay.style['z-index'] = 1001;
-      $overlay.style.display = 'none';
       $overlay.appendChild($container);
       return $overlay;
     }
@@ -1301,6 +1340,90 @@ onUiLoaded(async () => {
       updateInput($hNumber);
       updateInput($wRange);
       updateInput($hRange);
+    }
+  }
+
+  class AlignScriotEntriesExecutor extends Executor {
+    /**
+     * @override
+     */
+    exec() {
+      this.alignEntries();
+      this.hideContainer();
+    }
+
+    /**
+     * @private
+     */
+    alignEntries() {
+      const $entries = this.modules.scriptEntries;
+      // XXX エントリーにidが無いためインデックス参照
+      const targets = {
+        blockWeight: {
+          icon: I18n.t.scripts.blockWeight,
+          $content: $entries[0],
+        },
+        adetailer: {
+          icon: I18n.t.scripts.adetailer,
+          $content: $entries[1],
+        },
+        additionalNetworks: {
+          icon: I18n.t.scripts.additionalNetworks,
+          $content: $entries[3],
+        },
+        controlNet: {
+          icon: I18n.t.scripts.controlNet,
+          $content: $entries[4],
+        },
+        script: {
+          icon: I18n.t.scripts.script,
+          $content: $entries[5],
+        },
+      };
+      const $pain = this.modules.pain;
+      const $buttons = Helper.buttonContainer();
+      for (const target of Object.values(targets)) {
+        const $overlay = this.makeOverlay(target.$content);
+        $pain.appendChild($overlay);
+
+        const $button = this.makeButton(target.icon, $overlay);
+        $buttons.appendChild($button);
+      }
+
+      this.newModules.seedStepsCfgContainer.after($buttons);
+    }
+
+    /**
+     * @param {HTMLElement} $content
+     * @returns {HTMLElement}
+     * @private
+     */
+    makeOverlay($content) {
+      const $overlay = Helper.overlay();
+      $overlay.appendChild($content);
+      return $overlay;
+    }
+
+    /**
+     * @param {string} icon
+     * @param {HTMLElement} $overlay
+     * @returns {HTMLElement}
+     * @private
+     */
+    makeButton(icon, $overlay) {
+      const $button = Helper.button();
+      $button.textContent = icon;
+      $button.addEventListener('click', () => {
+        Helper.shown($overlay, $overlay.style.display !== 'block');
+      });
+      return $button;
+    }
+
+    /**
+     * @private
+     */
+    hideContainer() {
+      Helper.hide(this.modules.scripts);
     }
   }
 
@@ -1943,6 +2066,7 @@ onUiLoaded(async () => {
       NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
+      AlignScriotEntriesExecutor,
     ];
     for (const ctor of txt2imgs) {
       new ctor('txt2img').exec();
@@ -1960,6 +2084,7 @@ onUiLoaded(async () => {
       NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
+      AlignScriotEntriesExecutor,
     ];
     for (const ctor of img2imgs) {
       new ctor('img2img').exec();
