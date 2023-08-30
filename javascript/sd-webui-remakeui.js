@@ -23,6 +23,7 @@ onUiLoaded(async () => {
 
   class KeyCodes {
     static Enter = 'Enter';
+    static Esc = 'Escape';
   };
 
   class Finder {
@@ -800,6 +801,7 @@ onUiLoaded(async () => {
       const $container = this.makeContainer($space, $contents);
       const $overlay = this.makeOverlay($container);
       // this.handleClose($overlay, $space); XXX 一旦廃止
+      this.handleCloseWithEsc($overlay);
       this.handleOpen($overlay);
       this.alignOverlay($overlay);
     }
@@ -1208,6 +1210,19 @@ onUiLoaded(async () => {
      */
     handleClose($overlay, $space) {
       $space.addEventListener('click', () => Helper.hide($overlay));
+    }
+
+    /**
+     * @param {HTMLElement} $overlay
+     * @access private
+     */
+    handleCloseWithEsc($overlay) {
+      // XXX textarea等にフォーカスが無いと機能しないので微妙
+      this.modules.pain.addEventListener('keydown', e => {
+        if (e.key == KeyCodes.Esc) {
+          Helper.hide($overlay);
+        }
+      });
     }
 
     /**
