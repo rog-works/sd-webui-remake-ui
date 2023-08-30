@@ -349,6 +349,10 @@ onUiLoaded(async () => {
         x23: '2:3',
         x11: '1:1',
       },
+      sendButtons: {
+        img2img: 'i2i',
+        inpaint: 'inp',
+      },
       scripts: {
         blockWeight: 'BW',
         adetailer: 'AD',
@@ -407,6 +411,9 @@ onUiLoaded(async () => {
     }
 
     /** @return {HTMLElement} */
+    get footer() { return Finder.by(this.id('footer')); }
+
+    /** @return {HTMLElement} */
     get pain() { return Finder.by(this.id('tab_txt2img')); }
 
     /** @return {HTMLElement} */
@@ -414,6 +421,15 @@ onUiLoaded(async () => {
 
     /** @return {HTMLElement} */
     get results() { return Finder.by(this.id('txt2img_results')); }
+
+    /** @return {HTMLElement} */
+    get resultButtons() { return Finder.by(this.id('image_buttons_txt2img')); }
+
+    /** @return {HTMLElement} */ // @ts-ignore
+    get resultImageFooter() { return Finder.by(this.id('txt2img_gallery_container')).nextElementSibling; }
+
+    /** @return {HTMLElement} */
+    get resultImage() { return Finder.by(this.id('txt2img_gallery')); }
 
     /** @return {HTMLElement} */
     get tokenCounter() { return Finder.by(this.id('txt2img_token_counter')); }
@@ -684,11 +700,28 @@ onUiLoaded(async () => {
     }
   }
 
+  class HideFooterExecutor extends Executor {
+    /**
+     * @override
+     */
+    exec() {
+      Helper.hide(this.modules.footer);
+    }
+  }
+
   class AlignSettingsExecutor extends Executor {
     /**
      * @override
      */
     exec() {
+      this.align();
+      this.hide();
+    }
+
+    /**
+     * @access private
+     */
+    align() {
       const $toolsContainer = this.modules.toolsContainer;
       this.modules.sampler.appendChild($toolsContainer);
 
@@ -706,13 +739,11 @@ onUiLoaded(async () => {
       $settings.appendChild(this.modules.extraNetworks);
       $settings.appendChild(this.modules.scripts);
     }
-  }
 
-  class HideSettingsExecutor extends Executor {
     /**
-     * @override
+     * @access private
      */
-    exec() {
+    hide() {
       Helper.hide(this.modules.seedExtra);
     }
   }
@@ -728,6 +759,9 @@ onUiLoaded(async () => {
       this.handleOpenClose($overlay);
     }
 
+    /**
+     * @access private
+     */
     makeOverlay() {
       const $overlay = Helper.overlay();
       $overlay.style['overflow-y'] = 'scroll';
@@ -1292,7 +1326,7 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @private
+     * @access private
      */
     handle2x3() {
       this.changeAspect([
@@ -1304,6 +1338,9 @@ onUiLoaded(async () => {
       ]);
     }
 
+    /**
+     * @access private
+     */
     handle1x1() {
       this.changeAspect([
         '512x512',
@@ -1317,6 +1354,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {string[]} presets
+     * @access private
      */
     changeAspect(presets) {
       const $w = this.modules.widthSlider;
@@ -1343,7 +1381,78 @@ onUiLoaded(async () => {
     }
   }
 
-  class AlignScriotEntriesExecutor extends Executor {
+  class RemakeResultFooterExecutor extends Executor {
+    /**
+     * @override
+     */
+    exec() {
+      const $buttons = this.makeButtons();
+      const $buttonContainer = this.makeButtonContainer($buttons);
+      this.alignButtonContainer($buttonContainer);
+      this.hideFooter();
+    }
+
+    /**
+     * @returns {HTMLButtonElement[]}
+     * @access private
+     */
+    makeButtons() {
+      const $root = this.modules.resultButtons;
+      return [
+        this.makeButton(I18n.t.sendButtons.img2img, Finder.query('#img2img_tab', $root)),
+        this.makeButton(I18n.t.sendButtons.inpaint, Finder.query('#inpaint_tab', $root)),
+      ];
+    }
+
+    /**
+     * @param {string} icon
+     * @param {HTMLElement} $orgButton
+     * @returns {HTMLButtonElement}
+     * @access private
+     */
+    makeButton(icon, $orgButton) {
+      const $button = Helper.button();
+      $button.textContent = icon;
+      $button.addEventListener('click', () => $orgButton.click());
+      return $button
+    }
+
+    /**
+     * @param {HTMLButtonElement[]} $buttons
+     * @returns {HTMLElement}
+     * @access private
+     */
+    makeButtonContainer($buttons) {
+      const $container = Helper.floatingButtonContainer();
+      $container.style.top = '-20px';
+      $container.style.right = '40px';
+      for (const $button of $buttons) {
+        $container.appendChild($button);
+      }
+
+      return $container;
+    }
+
+    /**
+     * @param {HTMLElement} $container
+     * @access private
+     */
+    alignButtonContainer($container) {
+      const $parent = this.modules.resultImage;
+      // XXX 直近影響は無いが、position属性の変更は表示崩れが起きる可能性大
+      $parent.style.position = 'relative';
+      $parent.appendChild($container);
+    }
+
+    /**
+     * @access private
+     */
+    hideFooter() {
+      Helper.hide(this.modules.resultImageFooter);
+    }
+  }
+
+  class AlignScriptEntriesExecutor extends Executor {
     /**
      * @override
      */
@@ -1353,7 +1462,7 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @private
+     * @access private
      */
     alignEntries() {
       const $entries = this.modules.scriptEntries;
@@ -1388,19 +1497,34 @@ onUiLoaded(async () => {
 
         const $button = this.makeButton(target.icon, $overlay);
         $buttons.appendChild($button);
+
+        // XXX 余りのエントリーはScript関連のエントリーとして扱う
+        if (target.icon == I18n.t.scripts.script) {
+          const $relations = [$entries[2], ...Array.from($entries).slice(6)];
+          for (const $relation of $relations) {
+            $overlay.appendChild($relation);
+          }
+        }
       }
 
-      this.newModules.seedStepsCfgContainer.after($buttons);
+      this.modules.settings.appendChild($buttons);
     }
 
     /**
      * @param {HTMLElement} $content
      * @returns {HTMLElement}
-     * @private
+     * @access private
      */
     makeOverlay($content) {
       const $overlay = Helper.overlay();
-      $overlay.appendChild($content);
+      const $bg = Helper.div();
+      $bg.style['background'] = 'rgba(0, 0, 0, 0.5)';
+      $bg.style['border-radius'] = '0.5rem';
+      $bg.style.padding = '1rem';
+      $bg.style.width = '100%';
+      $bg.style.height = '100%';
+      $bg.appendChild($content);
+      $overlay.appendChild($bg);
       return $overlay;
     }
 
@@ -1408,7 +1532,7 @@ onUiLoaded(async () => {
      * @param {string} icon
      * @param {HTMLElement} $overlay
      * @returns {HTMLElement}
-     * @private
+     * @access private
      */
     makeButton(icon, $overlay) {
       const $button = Helper.button();
@@ -1420,7 +1544,7 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @private
+     * @access private
      */
     hideContainer() {
       Helper.hide(this.modules.scripts);
@@ -1478,6 +1602,7 @@ onUiLoaded(async () => {
 
     /**
      * @returns {HTMLTableElement}
+     * @access private
      */
     makeTable() {
       const $table = Helper.table();
@@ -1497,6 +1622,7 @@ onUiLoaded(async () => {
 
     /**
      * @returns {HTMLTextAreaElement}
+     * @access private
      */
     makeTextarea() {
       const $textarea = Helper.textarea();
@@ -1508,6 +1634,7 @@ onUiLoaded(async () => {
      * @param {HTMLTableElement} $table
      * @param {HTMLTextAreaElement} $textarea
      * @returns {{run: HTMLButtonElement, apply: HTMLButtonElement, clear: HTMLButtonElement, restore: HTMLButtonElement}}
+     * @access private
      */
     makeButtons($table, $textarea) {
       const $runButton = this.makeRunButton($table);
@@ -1522,6 +1649,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLButtonElement[]} $buttons
      * @returns {HTMLElement}
+     * @access private
      */
     makeTools($buttons) {
       const $tools = Helper.buttonContainer();
@@ -1534,6 +1662,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLTableElement} $table
      * @returns {HTMLButtonElement}
+     * @access private
      */
     makeRunButton($table) {
       const $button = Helper.button();
@@ -1554,6 +1683,7 @@ onUiLoaded(async () => {
      * @param {HTMLTableElement} $table
      * @param {HTMLTextAreaElement} $textarea
      * @returns {HTMLButtonElement}
+     * @access private
      */
     makeApplyButton($table, $textarea) {
       const $button = Helper.button();
@@ -1567,6 +1697,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLTableElement} $table
      * @returns {HTMLButtonElement}
+     * @access private
      */
     makeClearButton($table) {
       const $button = Helper.button();
@@ -1580,6 +1711,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLButtonElement} $runButton
      * @returns {HTMLButtonElement}
+     * @access private
      */
     makeRestoreButton($runButton) {
       const $button = Helper.button();
@@ -1595,6 +1727,7 @@ onUiLoaded(async () => {
      * @param {HTMLTextAreaElement} $textarea
      * @param {HTMLButtonElement} $runButton
      * @param {HTMLButtonElement} $applyButton
+     * @access private
      */
     handleKeydown($textarea, $runButton, $applyButton) {
       $textarea.addEventListener('keydown', e => {
@@ -1610,6 +1743,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLTableElement} $table
+     * @access private
      */
     async run($table) {
       /**
@@ -1756,6 +1890,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLTableElement} $table
+     * @access private
      */
     clearTable($table) {
       const $body = Finder.query('tbody', $table);
@@ -1764,6 +1899,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLTextAreaElement} $textarea
+     * @access private
      */
     clearTextarea($textarea) {
       $textarea.value = '';
@@ -1773,6 +1909,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLTableElement} $table
      * @param {HTMLTextAreaElement} $textarea
+     * @access private
      */
     apply($table, $textarea) {
       const lines = ($textarea.value.split('\n') || []).filter(line => line.trim().length);
@@ -1791,6 +1928,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLTableElement} $table
      * @param {{url: string, subdir: string, version: string}} model
+     * @access private
      */
     addReserve($table, model) {
       /**
@@ -2060,13 +2198,13 @@ onUiLoaded(async () => {
       Txt2ImgTopExecutor,
       HideToolsExecutor,
       AlignSettingsExecutor,
-      HideSettingsExecutor,
       AlignTagSelectorExecutor,
       NewAspectToolExecutor,
       NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
-      AlignScriotEntriesExecutor,
+      AlignScriptEntriesExecutor,
+      RemakeResultFooterExecutor,
     ];
     for (const ctor of txt2imgs) {
       new ctor('txt2img').exec();
@@ -2076,7 +2214,6 @@ onUiLoaded(async () => {
       Img2ImgTopExecutor,
       HideToolsExecutor,
       AlignSettingsExecutor,
-      HideSettingsExecutor,
       Img2ImgHideTools,
       Img2ImgAlignSettingsExecutor,
       Img2ImgNewSettingsExecutor,
@@ -2084,7 +2221,8 @@ onUiLoaded(async () => {
       NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
-      AlignScriotEntriesExecutor,
+      AlignScriptEntriesExecutor,
+      RemakeResultFooterExecutor,
     ];
     for (const ctor of img2imgs) {
       new ctor('img2img').exec();
@@ -2092,6 +2230,7 @@ onUiLoaded(async () => {
 
     const others = [
       TabAlignExecutor,
+      HideFooterExecutor,
     ];
     for (const ctor of others) {
       new ctor('txt2img').exec();
