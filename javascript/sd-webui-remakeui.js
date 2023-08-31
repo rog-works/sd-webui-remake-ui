@@ -404,7 +404,6 @@ onUiLoaded(async () => {
     /**
      * @param {string} id
      * @return {string}
-     * @access private
      */
     id(id) {
       return this._mode === 'txt2img' ? id : id.replace('txt2img', this._mode);
@@ -512,10 +511,10 @@ onUiLoaded(async () => {
     /** @return {HTMLElement} */
     get settings() { return Finder.by(this.id('txt2img_settings')); }
 
-    /** @return {HTMLElement} @access private */
+    /** @return {HTMLElement} @private */
     get hiresFix() { return Finder.by('txt2img_hires_fix'); }
 
-    /** @return {HTMLElement} @access private */
+    /** @return {HTMLElement} @private */
     get img2imgDenoiseStrength() { return Finder.by('img2img_denoising_strength'); }
 
     /** @return {HTMLElement} */
@@ -569,7 +568,7 @@ onUiLoaded(async () => {
     /**
      * @param {string} id
      * @return {string}
-     * @access private
+     * @private
      */
     id(id) {
       return this._mode === 'txt2img' ? id : id.replace('txt2img', this._mode);
@@ -719,7 +718,7 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @access private
+     * @private
      */
     align() {
       const $toolsContainer = this.modules.toolsContainer;
@@ -741,7 +740,7 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @access private
+     * @private
      */
     hide() {
       Helper.hide(this.modules.seedExtra);
@@ -760,7 +759,7 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @access private
+     * @private
      */
     makeOverlay() {
       const $overlay = Helper.overlay();
@@ -769,7 +768,7 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @access private
+     * @private
      */
     alignButton() {
       const $open = this.modules.tagSelectorButton;
@@ -780,7 +779,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLElement} $overlay
-     * @access private
+     * @private
      */
     alignContainer($overlay) {
       $overlay.appendChild(this.modules.tagSelectorContainer);
@@ -789,7 +788,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLElement} $overlay
-     * @access private
+     * @private
      */
     handleOpenClose($overlay) {
       const $button = this.modules.tagSelectorButton;
@@ -833,7 +832,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLElement} $container
-     * @access private
+     * @private
      */
     remake($container) {
       const $radioContainer = Finder.query('div.flex', $container);
@@ -861,7 +860,7 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @access private
+     * @private
      */
     align() {
       const $container = Helper.div();
@@ -895,7 +894,7 @@ onUiLoaded(async () => {
 
     /**
      * @return {HTMLElement}
-     * @access private
+     * @private
      */
     get $$overlay () {
       return Finder.by(`${this.mode}_new_lora`);
@@ -903,7 +902,7 @@ onUiLoaded(async () => {
 
     /**
      * @return {HTMLElement}
-     * @access private
+     * @private
      */
     get $$container() {
       return Finder.query('.lora_container', this.$$overlay);
@@ -911,7 +910,7 @@ onUiLoaded(async () => {
 
     /**
      * @return {HTMLElement}
-     * @access private
+     * @private
      */
     get $$contents() {
       return Finder.query('.lora_contents', this.$$overlay);
@@ -919,7 +918,7 @@ onUiLoaded(async () => {
 
     /**
      * @return {HTMLElement}
-     * @access private
+     * @private
      */
     get $$items() {
       return Finder.query('.lora_items', this.$$overlay);
@@ -927,7 +926,7 @@ onUiLoaded(async () => {
 
     /**
      * @return {NodeListOf<HTMLElement>}
-     * @access private
+     * @private
      */
     get $$itemEntries() {
       return Finder.queryAll('.lora_item', this.$$overlay);
@@ -935,7 +934,7 @@ onUiLoaded(async () => {
 
     /**
      * @return {HTMLTextAreaElement}
-     * @access private
+     * @private
      */
     get $$search() {
       // @ts-ignore
@@ -945,7 +944,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLElement} $container
      * @return {HTMLElement}
-     * @access private
+     * @private
      */
     makeOverlay($container) {
       const $overlay = Helper.overlay();
@@ -956,7 +955,7 @@ onUiLoaded(async () => {
 
     /**
      * @return {HTMLElement}
-     * @access private
+     * @private
      */
     makeSpace() {
       return Helper.div();
@@ -964,7 +963,7 @@ onUiLoaded(async () => {
 
     /**
      * @return {HTMLElement}
-     * @access private
+     * @private
      */
     makeContents() {
       const $items = Helper.div();
@@ -1024,7 +1023,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLElement} $card
      * @return {HTMLElement}
-     * @access private
+     * @private
      */
     makeItem($card) {
       const $thumb = Helper.img();
@@ -1098,7 +1097,7 @@ onUiLoaded(async () => {
 
     /**
      * @return {HTMLElement}
-     * @access private
+     * @private
      */
     makeSearch() {
       const timeoutMS = 300;
@@ -1127,7 +1126,7 @@ onUiLoaded(async () => {
 
     /**
      * @return {HTMLElement}
-     * @access private
+     * @private
      */
     makeSubDirs() {
       const $selectBox = Helper.select();
@@ -1152,7 +1151,7 @@ onUiLoaded(async () => {
 
     /**
      * @returns {HTMLElement}
-     * @access private
+     * @private
      */
     makeNewSort() {
       const $checkBox = Helper.checkbox();
@@ -1191,7 +1190,7 @@ onUiLoaded(async () => {
 
     /**
      * @returns {HTMLElement}
-     * @access private
+     * @private
      */
     makeRefresh() {
       const beforeRefresh = () => {
@@ -1249,7 +1248,7 @@ onUiLoaded(async () => {
      * @param {HTMLElement} $space
      * @param {HTMLElement} $contents
      * @return {HTMLElement}
-     * @access private
+     * @private
      */
     makeContainer($space, $contents) {
       const $container = Helper.div();
@@ -1263,7 +1262,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLElement} $overlay
-     * @access private
+     * @private
      */
     handleOpen($overlay) {
       const $button = Helper.button();
@@ -1279,7 +1278,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLElement} $overlay
      * @param {HTMLElement} $space
-     * @access private
+     * @private
      */
     handleClose($overlay, $space) {
       $space.addEventListener('click', () => Helper.hide($overlay));
@@ -1287,7 +1286,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLElement} $overlay
-     * @access private
+     * @private
      */
     handleCloseWithEsc($overlay) {
       // XXX textarea等にフォーカスが無いと機能しないので微妙
@@ -1300,7 +1299,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLElement} $overlay
-     * @access private
+     * @private
      */
     alignOverlay($overlay) {
       const $tabs = Finder.by('tabs');
@@ -1326,7 +1325,7 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @access private
+     * @private
      */
     handle2x3() {
       this.changeAspect([
@@ -1339,7 +1338,7 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @access private
+     * @private
      */
     handle1x1() {
       this.changeAspect([
@@ -1354,7 +1353,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {string[]} presets
-     * @access private
+     * @private
      */
     changeAspect(presets) {
       const $w = this.modules.widthSlider;
@@ -1394,7 +1393,7 @@ onUiLoaded(async () => {
 
     /**
      * @returns {HTMLButtonElement[]}
-     * @access private
+     * @private
      */
     makeButtons() {
       const $root = this.modules.resultButtons;
@@ -1408,7 +1407,7 @@ onUiLoaded(async () => {
      * @param {string} icon
      * @param {HTMLElement} $orgButton
      * @returns {HTMLButtonElement}
-     * @access private
+     * @private
      */
     makeButton(icon, $orgButton) {
       const $button = Helper.button();
@@ -1420,7 +1419,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLButtonElement[]} $buttons
      * @returns {HTMLElement}
-     * @access private
+     * @private
      */
     makeButtonContainer($buttons) {
       const $container = Helper.floatingButtonContainer();
@@ -1435,7 +1434,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLElement} $container
-     * @access private
+     * @private
      */
     alignButtonContainer($container) {
       const $parent = this.modules.resultImage;
@@ -1445,7 +1444,7 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @access private
+     * @private
      */
     hideFooter() {
       Helper.hide(this.modules.resultImageFooter);
@@ -1462,34 +1461,49 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @access private
+     * @private
      */
     alignEntries() {
       const $entries = this.modules.scriptEntries;
+      const $contents = {
+        blockWeight: $entries[0],
+        adetailer: $entries[1],
+        additionalNetworks: $entries[3],
+        controlNet: $entries[4],
+        script: $entries[5],
+      };
+      const $remains = [$entries[2], ...Array.from($entries).slice(6)];
       // XXX エントリーにidが無いためインデックス参照
       const targets = {
         blockWeight: {
           icon: I18n.t.scripts.blockWeight,
-          $content: $entries[0],
+          $content: $contents.blockWeight,
+          $enabler: Finder.query('#lbw_active input[type="checkbox"]', $contents.blockWeight),
         },
         adetailer: {
           icon: I18n.t.scripts.adetailer,
-          $content: $entries[1],
+          $content: $contents.adetailer,
+          $enabler: Finder.query(`#${this.modules.id('script_txt2img_adetailer_ad_enable')} input[type="checkbox"]`, $contents.adetailer),
         },
         additionalNetworks: {
           icon: I18n.t.scripts.additionalNetworks,
-          $content: $entries[3],
+          $content: $contents.additionalNetworks,
+          $enabler: Finder.query('input[type="checkbox"]', $contents.additionalNetworks),
         },
         controlNet: {
           icon: I18n.t.scripts.controlNet,
-          $content: $entries[4],
+          $content: $contents.controlNet,
+          $enabler: Finder.query('input[type="checkbox"]', $contents.controlNet),
         },
         script: {
           icon: I18n.t.scripts.script,
-          $content: $entries[5],
+          $content: $contents.script,
+          $enabler: Finder.query('select', $contents.script),
         },
       };
       const $pain = this.modules.pain;
+      /** @type {HTMLButtonElement} */ // @ts-ignore
+      const $applyer = Finder.query('#paste', $pain);
       const $buttons = Helper.buttonContainer();
       for (const target of Object.values(targets)) {
         const $overlay = this.makeOverlay(target.$content);
@@ -1498,11 +1512,13 @@ onUiLoaded(async () => {
         const $button = this.makeButton(target.icon, $overlay);
         $buttons.appendChild($button);
 
+        this.handleEnable($button, target.$enabler, $applyer);
+
         // XXX 余りのエントリーはScript関連のエントリーとして扱う
         if (target.icon == I18n.t.scripts.script) {
-          const $relations = [$entries[2], ...Array.from($entries).slice(6)];
-          for (const $relation of $relations) {
-            $overlay.appendChild($relation);
+          const $bg = Finder.query('div', $overlay);
+          for (const $remain of $remains) {
+            $bg.appendChild($remain);
           }
         }
       }
@@ -1513,7 +1529,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLElement} $content
      * @returns {HTMLElement}
-     * @access private
+     * @private
      */
     makeOverlay($content) {
       const $overlay = Helper.overlay();
@@ -1531,8 +1547,8 @@ onUiLoaded(async () => {
     /**
      * @param {string} icon
      * @param {HTMLElement} $overlay
-     * @returns {HTMLElement}
-     * @access private
+     * @returns {HTMLButtonElement}
+     * @private
      */
     makeButton(icon, $overlay) {
       const $button = Helper.button();
@@ -1544,7 +1560,53 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @access private
+     * @param {HTMLButtonElement} $button
+     * @param {HTMLElement} $enabler
+     * @param {HTMLButtonElement} $applyer
+     * @private
+     */
+    handleEnable($button, $enabler, $applyer) {
+      if (('type' in $enabler) && $enabler.type === 'checkbox') {
+        /** @type {HTMLInputElement} */ // @ts-ignore
+        const $checkbox = $enabler;
+        const handler = () => {
+          if ($checkbox.checked) {
+            $button.classList.add('text-green-500');
+          } else {
+            $button.classList.remove('text-green-500');
+          }
+        };
+
+        if ($checkbox.checked) {
+          $button.classList.add('text-green-500');
+        }
+
+        $enabler.addEventListener('change', handler);
+        // XXX 反映までのタイムラグがあるため一定時間後にハンドラーを呼び出す
+        $applyer.addEventListener('click', () => setTimeout(handler, 1000));
+      } else {
+        /** @type {HTMLSelectElement} */ // @ts-ignore
+        const $select = $enabler;
+        const handler = () => {
+          if ($select.selectedIndex > 0) {
+            $button.classList.add('text-green-500');
+          } else {
+            $button.classList.remove('text-green-500');
+          }
+        };
+
+        if ($select.selectedIndex > 0) {
+          $button.classList.add('text-green-500');
+        }
+
+        $enabler.addEventListener('change', handler);
+        // XXX 反映までのタイムラグがあるため一定時間後にハンドラーを呼び出す
+        $applyer.addEventListener('click', () => setTimeout(handler, 1000));
+      }
+    }
+
+    /**
+     * @private
      */
     hideContainer() {
       Helper.hide(this.modules.scripts);
@@ -1602,7 +1664,7 @@ onUiLoaded(async () => {
 
     /**
      * @returns {HTMLTableElement}
-     * @access private
+     * @private
      */
     makeTable() {
       const $table = Helper.table();
@@ -1622,7 +1684,7 @@ onUiLoaded(async () => {
 
     /**
      * @returns {HTMLTextAreaElement}
-     * @access private
+     * @private
      */
     makeTextarea() {
       const $textarea = Helper.textarea();
@@ -1634,7 +1696,7 @@ onUiLoaded(async () => {
      * @param {HTMLTableElement} $table
      * @param {HTMLTextAreaElement} $textarea
      * @returns {{run: HTMLButtonElement, apply: HTMLButtonElement, clear: HTMLButtonElement, restore: HTMLButtonElement}}
-     * @access private
+     * @private
      */
     makeButtons($table, $textarea) {
       const $runButton = this.makeRunButton($table);
@@ -1649,7 +1711,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLButtonElement[]} $buttons
      * @returns {HTMLElement}
-     * @access private
+     * @private
      */
     makeTools($buttons) {
       const $tools = Helper.buttonContainer();
@@ -1662,7 +1724,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLTableElement} $table
      * @returns {HTMLButtonElement}
-     * @access private
+     * @private
      */
     makeRunButton($table) {
       const $button = Helper.button();
@@ -1683,7 +1745,7 @@ onUiLoaded(async () => {
      * @param {HTMLTableElement} $table
      * @param {HTMLTextAreaElement} $textarea
      * @returns {HTMLButtonElement}
-     * @access private
+     * @private
      */
     makeApplyButton($table, $textarea) {
       const $button = Helper.button();
@@ -1697,7 +1759,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLTableElement} $table
      * @returns {HTMLButtonElement}
-     * @access private
+     * @private
      */
     makeClearButton($table) {
       const $button = Helper.button();
@@ -1711,7 +1773,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLButtonElement} $runButton
      * @returns {HTMLButtonElement}
-     * @access private
+     * @private
      */
     makeRestoreButton($runButton) {
       const $button = Helper.button();
@@ -1727,7 +1789,7 @@ onUiLoaded(async () => {
      * @param {HTMLTextAreaElement} $textarea
      * @param {HTMLButtonElement} $runButton
      * @param {HTMLButtonElement} $applyButton
-     * @access private
+     * @private
      */
     handleKeydown($textarea, $runButton, $applyButton) {
       $textarea.addEventListener('keydown', e => {
@@ -1743,7 +1805,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLTableElement} $table
-     * @access private
+     * @private
      */
     async run($table) {
       /**
@@ -1890,7 +1952,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLTableElement} $table
-     * @access private
+     * @private
      */
     clearTable($table) {
       const $body = Finder.query('tbody', $table);
@@ -1899,7 +1961,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLTextAreaElement} $textarea
-     * @access private
+     * @private
      */
     clearTextarea($textarea) {
       $textarea.value = '';
@@ -1909,7 +1971,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLTableElement} $table
      * @param {HTMLTextAreaElement} $textarea
-     * @access private
+     * @private
      */
     apply($table, $textarea) {
       const lines = ($textarea.value.split('\n') || []).filter(line => line.trim().length);
@@ -1928,7 +1990,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLTableElement} $table
      * @param {{url: string, subdir: string, version: string}} model
-     * @access private
+     * @private
      */
     addReserve($table, model) {
       /**
@@ -2024,7 +2086,7 @@ onUiLoaded(async () => {
     /**
      * @param {OrgButtons} orgButtons
      * @return {HTMLButtonElement}
-     * @access private
+     * @private
      */
     makeNewGen(orgButtons) {
       const $button = Helper.button();
@@ -2051,7 +2113,7 @@ onUiLoaded(async () => {
      * @param {OrgButtons} orgButtons
      * @param {HTMLButtonElement} $genButton
      * @return {HTMLButtonElement}
-     * @access private
+     * @private
      */
     makeNewStop(orgButtons, $genButton) {
       const $button = Helper.button();
@@ -2082,7 +2144,7 @@ onUiLoaded(async () => {
      * @param {OrgButtons} orgButtons
      * @param {HTMLButtonElement} $genButton
      * @return {HTMLButtonElement}
-     * @access private
+     * @private
      */
     makeNewSkip(orgButtons, $genButton) {
       const $button = Helper.button();
@@ -2131,7 +2193,7 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @access private
+     * @private
      */
     makeBackup() {
       const $backup = Helper.div();
@@ -2141,7 +2203,7 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @access private
+     * @private
      */
     makeRestore() {
       const $restore = Helper.button();
@@ -2158,7 +2220,7 @@ onUiLoaded(async () => {
     }
 
     /**
-     * @access private
+     * @private
      */
     handleDrop() {
       const $prompt = this.modules.prompt;
