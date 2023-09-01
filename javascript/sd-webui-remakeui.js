@@ -157,6 +157,16 @@ onUiLoaded(async () => {
     }
 
     /**
+     * @return {HTMLInputElement}
+     */
+    static trackbar() {
+      const $ = document.createElement('input');
+      $.type = 'range';
+      $.classList.add('w-full', 'disabled:cursor-not-allowed');
+      return $;
+    }
+
+    /**
      * @return {HTMLImageElement}
      */
     static img() {
@@ -1302,8 +1312,7 @@ onUiLoaded(async () => {
      * @private
      */
     alignOverlay($overlay) {
-      const $tabs = Finder.by('tabs');
-      $tabs.appendChild($overlay);
+      this.modules.pain.appendChild($overlay);
     }
   }
 
@@ -2233,6 +2242,50 @@ onUiLoaded(async () => {
     }
   }
 
+  class RemakeSettingTrackbarExecutor extends Executor {
+    /**
+     * @override
+     */
+    exec() {
+      this.remake(Finder.by(this.modules.id('txt2img_batch_count')), [1, 5, 10, 20, 50, 100]);
+      this.remake(Finder.by(this.modules.id('txt2img_steps')), [20, 25, 30, 35]);
+      this.remake(Finder.by(this.modules.id('txt2img_hr_scale')), [1, 1.25, 1.5, 1.6, 1.75, 2]);
+      this.remake(Finder.by(this.modules.id('txt2img_hires_steps')), [0, 20, 25, 30, 35]);
+      this.remake(Finder.by(this.modules.id('txt2img_denoising_strength')), [0.4, 0.5, 0.6, 0.7]);
+    }
+
+    /**
+     * @param {HTMLElement} $container
+     * @param {number[]} values
+     * @private
+     */
+    remake($container, values) {
+      /** @type {HTMLInputElement} */ // @ts-ignore
+      const $trackbar = Finder.query('input[type="range"]', $container);
+      /** @type {HTMLInputElement} */ // @ts-ignore
+      const $numeric = Finder.query('input[type="number"]', $container);
+      $trackbar.value = String(values[0]);
+      $numeric.value = String(values[0]);
+      updateInput($trackbar);
+      updateInput($numeric);
+
+      const $newTrackbar = Helper.trackbar();
+      $newTrackbar.value = String(0);
+      $newTrackbar.min = String(0);
+      $newTrackbar.max = String(values.length - 1);
+      $newTrackbar.step = String(1);
+      $newTrackbar.addEventListener('input', () => {
+        $trackbar.value = String(values[$newTrackbar.value]);
+        $numeric.value = String(values[$newTrackbar.value]);
+        updateInput($trackbar);
+        updateInput($numeric);
+      });
+
+      $container.appendChild($newTrackbar);
+      Helper.hide($trackbar);
+    }
+  }
+
   /**
    * @return {Promise<void>}
    */
@@ -2267,6 +2320,7 @@ onUiLoaded(async () => {
       NewPromptToolsExecutor,
       AlignScriptEntriesExecutor,
       RemakeResultFooterExecutor,
+      RemakeSettingTrackbarExecutor,
     ];
     for (const ctor of txt2imgs) {
       new ctor('txt2img').exec();
