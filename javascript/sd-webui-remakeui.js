@@ -1008,6 +1008,7 @@ onUiLoaded(async () => {
       $img.style.height = 'auto';
 
       const $imgBox = Helper.div();
+      $imgBox.style['overflow-y'] = 'auto';
       $imgBox.appendChild($img);
 
       for (const $card of Finder.queryAll('.card', this.modules.loraCards)) {
@@ -1066,12 +1067,23 @@ onUiLoaded(async () => {
 
       const $imgBox = Helper.div();
       $imgBox.style['flex-basis'] = '10%';
+      // 縦横中心配置
+      $imgBox.style.display = 'flex';
+      $imgBox.style['justify-content'] = 'center';
+      $imgBox.style['align-items'] = 'center';
       $imgBox.appendChild($thumb);
 
       const $path = Helper.div();
       $path.textContent = Finder.query('.actions > .name', $card).textContent;
       $path.style['text-align'] = 'left';
       $path.style['flex-basis'] = '60%';
+      // 縦中心配置
+      $path.style.display = 'flex';
+      $path.style['align-items'] = 'center';
+      // 3点リーダー表示
+      $path.style.overflow = 'hidden';
+      $path.style['white-space'] = 'nowrap';
+      $path.style['text-overflow'] = 'ellipsis';
 
       const $actions = Helper.div();
       $actions.style['flex-basis'] = '30%';
@@ -1118,6 +1130,8 @@ onUiLoaded(async () => {
       const $searchTerm = Finder.query('.actions > .additional > .search_term', $card);
       const $item = Helper.div();
       $item.classList.add('flex', 'lora_item');
+      $item.style['border-bottom'] = '1px white solid';
+      $item.style['margin-bottom'] = '8px';
       $item.dataset.timestamp = `${timestamp}`;
       $item.dataset.search_term = $searchTerm.textContent || '';
       $item.appendChild($imgBox);
@@ -1321,7 +1335,8 @@ onUiLoaded(async () => {
      * @private
      */
     handleCloseWithEsc($overlay) {
-      // XXX textarea等にフォーカスが無いと機能しないので微妙
+      // XXX 共通性の高い箇所へ変更を検討
+      this.modules.pain.tabIndex = -1;
       this.modules.pain.addEventListener('keydown', e => {
         if (e.key == KeyCodes.Esc) {
           Helper.hide($overlay);
@@ -1496,6 +1511,7 @@ onUiLoaded(async () => {
      */
     alignEntries() {
       const $entries = this.modules.scriptEntries;
+      // XXX エントリーにidが無いためインデックス参照
       const $contents = {
         blockWeight: $entries[0],
         adetailer: $entries[1],
@@ -1504,7 +1520,6 @@ onUiLoaded(async () => {
         script: $entries[5],
       };
       const $remains = [$entries[2], ...Array.from($entries).slice(6)];
-      // XXX エントリーにidが無いためインデックス参照
       const targets = {
         blockWeight: {
           icon: I18n.t.scripts.blockWeight,
@@ -1540,7 +1555,7 @@ onUiLoaded(async () => {
         const $overlay = this.makeOverlay(target.$content);
         $pain.appendChild($overlay);
 
-        const $button = this.makeButton(target.icon, $overlay);
+        const $button = this.makeButton(target.icon, $overlay, target.$enabler);
         $buttons.appendChild($button);
 
         this.handleEnable($button, target.$enabler, $applyer);
@@ -1554,7 +1569,7 @@ onUiLoaded(async () => {
         }
       }
 
-      this.modules.settings.appendChild($buttons);
+      Finder.query(`#${this.modules.id('sampler_selection_txt2img')} > div:nth-child(2)`).appendChild($buttons);;
     }
 
     /**
@@ -1567,6 +1582,7 @@ onUiLoaded(async () => {
       const $bg = Helper.div();
       $bg.style['background'] = 'rgba(0, 0, 0, 0.5)';
       $bg.style['border-radius'] = '0.5rem';
+      $bg.style['overflow-y'] = 'auto';
       $bg.style.padding = '1rem';
       $bg.style.width = '100%';
       $bg.style.height = '100%';
@@ -1578,14 +1594,31 @@ onUiLoaded(async () => {
     /**
      * @param {string} icon
      * @param {HTMLElement} $overlay
+     * @param {HTMLElement} $enabler
      * @returns {HTMLButtonElement}
      * @private
      */
-    makeButton(icon, $overlay) {
+    makeButton(icon, $overlay, $enabler) {
       const $button = Helper.button();
       $button.textContent = icon;
-      $button.addEventListener('click', () => {
-        Helper.shown($overlay, $overlay.style.display !== 'block');
+      $button.addEventListener('click', e => {
+        if (e.ctrlKey) {
+          if (('type' in $enabler) && $enabler.type === 'checkbox') {
+            $enabler.click();
+          } else {
+            /** @type {HTMLSelectElement} */ // @ts-ignore
+            const $select = $enabler;
+            Helper.selected($select, $select.options[0].value);
+          }
+        } else {
+          Helper.shown($overlay, $overlay.style.display !== 'block');
+        }
+      });
+      // @see NewLoraExecutor.handleCloseWithEsc
+      this.modules.pain.addEventListener('keydown', e => {
+        if (e.key == KeyCodes.Esc) {
+          Helper.hide($overlay);
+        }
       });
       return $button;
     }
