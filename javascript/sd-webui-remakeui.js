@@ -406,6 +406,7 @@ onUiLoaded(async () => {
             apply: '↙️',
             clear: '×',
             restore: '↩️',
+            load: '📁️',
           },
           statuses: {
             standby: 'StandBy',
@@ -1712,6 +1713,17 @@ onUiLoaded(async () => {
 
   class CivitaiHelperBulkDownloadExecutor extends Executor {
     /**
+     * @param {'txt2img' | 'img2img'} mode
+     */
+    constructor(mode) {
+      super(mode);
+      /** @type {number} */
+      this.handleId = 0;
+      /** @type {number} */
+      this.cancelId = 0;
+    }
+
+    /**
      * @override
      */
     exec() {
@@ -1759,7 +1771,7 @@ onUiLoaded(async () => {
     /**
      * @param {HTMLTableElement} $table
      * @param {HTMLTextAreaElement} $textarea
-     * @returns {{run: HTMLButtonElement, apply: HTMLButtonElement, clear: HTMLButtonElement, restore: HTMLButtonElement}}
+     * @returns {{run: HTMLButtonElement, apply: HTMLButtonElement, clear: HTMLButtonElement, restore: HTMLButtonElement, load: HTMLButtonElement}}
      * @private
      */
     makeButtons($table, $textarea) {
@@ -1769,6 +1781,7 @@ onUiLoaded(async () => {
         apply: this.makeApplyButton($table, $textarea),
         clear: this.makeClearButton($table),
         restore: this.makeRestoreButton($runButton),
+        load: this.makeLoadButton($table),
       };
     }
 
@@ -1794,13 +1807,20 @@ onUiLoaded(async () => {
       const $button = Helper.button();
       $button.textContent = I18n.t.civitaiHelper.model.actions.run;
       $button.addEventListener('click', async () => {
-        $button.disabled = true;
-        $button.classList.add('disabled', 'dark');
+        if (this.handleId === 0) {
+          $button.disabled = true;
+          $button.classList.add('disabled', 'dark');
 
-        await this.run($table);
+          this.handleId = Math.ceil(Math.random() * 1000000);
+          await this.run($table, this.handleId);
+          this.handleId = 0;
+          this.cancelId = 0;
 
-        $button.disabled = false;
-        $button.classList.remove('disabled', 'dark');
+          $button.disabled = false;
+          $button.classList.remove('disabled', 'dark');
+        } else {
+          console.warn('already bulk downloading!');
+        }
       });
       return $button;
     }
@@ -1843,8 +1863,23 @@ onUiLoaded(async () => {
       const $button = Helper.button();
       $button.textContent = I18n.t.civitaiHelper.model.actions.restore;
       $button.addEventListener('click', () => {
+        this.cancelId = this.handleId;
         $runButton.disabled = false;
         $runButton.classList.remove('disabled', 'dark');
+      });
+      return $button;
+    }
+
+    /**
+     * @param {HTMLTableElement} $table
+     * @returns {HTMLButtonElement}
+     * @private
+     */
+    makeLoadButton($table) {
+      const $button = Helper.button();
+      $button.textContent = I18n.t.civitaiHelper.model.actions.load;
+      $button.addEventListener('click', () => {
+        this.loadStorage($table);
       });
       return $button;
     }
@@ -1869,16 +1904,27 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLTableElement} $table
+     * @param {number} handleId
      * @private
      */
-    async run($table) {
+    async run($table, handleId) {
+      /**
+       * @returns {boolean}
+       */
+      const aborted = () => {
+        return this.cancelId === handleId;
+      }
+
       /**
        * @returns {Promise<boolean>}
        */
       const waitUntilInfoDownload = async () => {
         let timeout = 0;
-        while(timeout < 5000) {
+        while(timeout < 5000 || aborted()) {
           await Core.sleep(100);
+          if (aborted()) {
+            return false;
+          }
 
           const $wrap = Finder.query(`#${this.modules.civitaiHelperModelSectionId} > div > div:nth-child(4) div.wrap`);
           if ($wrap.classList.contains('opacity-0')) {
@@ -1897,13 +1943,21 @@ onUiLoaded(async () => {
        */
       const waitUntilModelDownload = async () => {
         let timeout = 0;
-        while(timeout < 10 * 60 * 1000) {
+        while(timeout < 10 * 60 * 1000 || aborted()) {
           await Core.sleep(1000);
+          if (aborted()) {
+            return false;
+          }
 
           const $elems = Finder.queryAll(`#${this.modules.civitaiHelperModelSectionId} > div > div`); // XXX div:nth-child(5)だと何故か取得できない
           const $wrap = Finder.query('div.wrap', $elems[4]);
           if ($wrap.classList.contains('opacity-0')) {
             return true;
+          }
+
+          const $error = $wrap.children[0]; // XXX Finder.query('span.error', $wrap)だと何故か取得できない
+          if ($error && $error.classList.contains('error')) {
+            return false;
           }
         }
 
@@ -1995,7 +2049,7 @@ onUiLoaded(async () => {
           }
         };
 
-        if (!target) {
+        if (!target || aborted()) {
           break;
         }
 
@@ -2011,7 +2065,7 @@ onUiLoaded(async () => {
         Helper.selected(target.$status, succeess ? I18n.t.civitaiHelper.model.statuses.complete : I18n.t.civitaiHelper.model.statuses.error);
       }
 
-      console.log('bulk download completed!');
+      console.log(aborted() ? 'bulk download aborted!' : 'bulk download completed!');
     }
 
     /**
@@ -2049,6 +2103,7 @@ onUiLoaded(async () => {
       }
 
       this.clearTextarea($textarea);
+      this.saveStorage($table);
     }
 
     /**
@@ -2115,6 +2170,46 @@ onUiLoaded(async () => {
 
       const $body = Finder.query('tbody', $table);
       $body.appendChild($row);
+    }
+
+    /**
+     * @param {HTMLTableElement} $table
+     */
+    saveStorage($table) {
+      /** @type {{url: string, subdir: string, version: string}[]} */
+      const items = [];
+      for (const $row of $table.rows) {
+        const [$baseUrl, $path, $subdir_, $version_, $status_] = $row.cells;
+        if ($baseUrl.textContent === I18n.t.civitaiHelper.model.headers.baseUrl) {
+          continue;
+        }
+
+        /** @type {HTMLSelectElement} */ // @ts-ignore
+        const $subdir = Finder.query('select', $subdir_);
+        /** @type {HTMLTextAreaElement} */ // @ts-ignore
+        const $version = Finder.query('textarea', $version_);
+        items.push({
+          url: $baseUrl.textContent || '',
+          subdir: $subdir.value,
+          version: $version.value,
+        });
+      }
+
+      localStorage.setItem('bulk-download-items', JSON.stringify(items));
+    }
+
+    /**
+     * @param {HTMLTableElement} $table
+     */
+    loadStorage($table) {
+      const data = localStorage.getItem('bulk-download-items');
+      if (data) {
+        /** @type {{url: string, subdir: string, version: string}[]} */
+        const items = JSON.parse(data);
+        for (const item of items) {
+          this.addReserve($table, {url: item.url, subdir: item.subdir, version: item.version});
+        }
+      }
     }
   }
 
