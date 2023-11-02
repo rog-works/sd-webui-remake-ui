@@ -255,6 +255,24 @@ onUiLoaded(async () => {
      * @return {HTMLDivElement}
     */
     static overlay() {
+      /**
+       * @param {HTMLElement} $
+       * @returns {HTMLElement}
+       * @private
+       */
+      function makeClose($) {
+        const $button = Helper.button();
+        $button.style.position = 'relative';
+        $button.style.left = '-20px';
+        $button.textContent = I18n.t.overlay.close;
+        $button.addEventListener('click', () => Helper.hide($));
+
+        const $container = Helper.div();
+        $container.style.position = 'absolute';
+        $container.appendChild($button);
+        return $container;
+      }
+
       const $ = Helper.div();
       $.style.position = 'fixed';
       // $overlay.style.width = '100%'; XXX 一旦廃止
@@ -270,6 +288,7 @@ onUiLoaded(async () => {
       $.style['min-height'] = 'initial';
       $.style['z-index'] = 1001;
       $.style.display = 'none';
+      $.appendChild(makeClose($));
       return $;
     }
 
@@ -346,6 +365,9 @@ onUiLoaded(async () => {
         gen: '▶️️',
         stop: '️■️',
         skip: '️➡',
+      },
+      overlay: {
+        close: '✖️',
       },
       image: {
         notFound: './file=html/card-no-preview.png',
