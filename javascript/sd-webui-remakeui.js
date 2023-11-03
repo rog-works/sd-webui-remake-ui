@@ -1060,6 +1060,68 @@ onUiLoaded(async () => {
      * @private
      */
     makeItem($card) {
+      /**
+       * @param {HTMLButtonElement} $orgAction
+       * @return {HTMLButtonElement}
+       */
+      const newAction = ($orgAction) => {
+        const $action = Helper.button();
+        $action.textContent = $orgAction.textContent;
+        $action.addEventListener('click', e => {
+          e.stopPropagation();
+          e.preventDefault();
+          $orgAction.click();
+        });
+
+        return $action;
+      };
+
+      /**
+       * @return {HTMLButtonElement}
+       */
+      const newInsert = () => {
+        const $action = Helper.button();
+        $action.textContent = I18n.t.lora.swap;
+        $action.addEventListener('click', e => {
+          e.stopPropagation();
+          e.preventDefault();
+          /** @type {HTMLTextAreaElement} */ // @ts-ignore
+          const $textarea = Finder.query('textarea', this.modules.prompt);
+          const pattern = '<([^:]+):([^:]+):([^>]+)>';
+          const matches = $textarea.value.match(new RegExp(pattern, 'g')) || [];
+          const contains = matches.filter(loraTag => {
+            const inMatches = loraTag.match(new RegExp(pattern));
+            return inMatches && inMatches[2] === $path.textContent;
+          }).length > 0;
+          if (!contains && matches.length > 0) {
+            const first = matches[0] || '';
+            const [, loraType, , loraWeight] = first.match(new RegExp(pattern)) || [];
+            $textarea.value = $textarea.value.replace(first, `<${loraType}:${$path.textContent}:${loraWeight}>`);
+            updateInput($textarea);
+          }
+        });
+
+        return $action;
+      };
+
+      /**
+       * @param {HTMLButtonElement} $orgAction
+       * @return {HTMLButtonElement}
+       */
+      const newPrompt = ($orgAction) => {
+        const $action = Helper.button();
+        $action.textContent = $orgAction.textContent;
+        $action.addEventListener('click', e => {
+          e.stopPropagation();
+          e.preventDefault();
+          // @see NewPromptToolsExecutor.handleDrop
+          this.modules.prompt.dispatchEvent(new Event('prompt:backup'));
+          $orgAction.click();
+        });
+
+        return $action;
+      };
+
       const $thumb = Helper.img();
       const matches = $card.style['background-image'].match(/"(.+)"/);
       $thumb.src = matches ? matches[1] : I18n.t.image.notFound;
@@ -1091,38 +1153,17 @@ onUiLoaded(async () => {
 
       // XXX CivitaiHelperのバグで更新時に4つ以上にボタンが増殖するため、先頭の4つだけ利用する
       const $orgActions = Array.from(Finder.queryAll('.actions > .additional > ul > a', $card)).slice(0, 4);
-      for (const [index, $orgAction] of $orgActions.entries()) {
-        const $action = Helper.button();
+      for (const [index, $orgAction_] of $orgActions.entries()) {
+        /** @type {HTMLButtonElement} */ // @ts-ignore
+        const $orgAction = $orgAction_;
+        // 0=Loraタグ挿入, 1=ページを開く, 2=トリガーワード挿入, 3=サンプルプロンプト
         if (index === 0) {
-          $action.textContent = I18n.t.lora.swap;
-          $action.addEventListener('click', e => {
-            e.stopPropagation();
-            e.preventDefault();
-            /** @type {HTMLTextAreaElement} */ // @ts-ignore
-            const $textarea = Finder.query('textarea', this.modules.prompt);
-            const pattern = '<([^:]+):([^:]+):([^>]+)>';
-            const matches = $textarea.value.match(new RegExp(pattern, 'g')) || [];
-            const contains = matches.filter(loraTag => {
-              const inMatches = loraTag.match(new RegExp(pattern));
-              return inMatches && inMatches[2] === $path.textContent;
-            }).length > 0;
-            if (!contains && matches.length > 0) {
-              const first = matches[0] || '';
-              const [, loraType, , loraWeight] = first.match(new RegExp(pattern)) || [];
-              $textarea.value = $textarea.value.replace(first, `<${loraType}:${$path.textContent}:${loraWeight}>`);
-              updateInput($textarea);
-            }
-          });
+          $actions.appendChild(newInsert());
+        } else if (index === 3) {
+          $actions.appendChild(newPrompt($orgAction));
         } else {
-          $action.textContent = $orgAction.textContent;
-          $action.addEventListener('click', e => {
-            e.stopPropagation();
-            e.preventDefault();
-            $orgAction.click();
-          });
+          $actions.appendChild(newAction($orgAction));
         }
-
-        $actions.appendChild($action);
       }
 
       const timeMatches = $thumb.src.match(/mtime=(\d+)/);
@@ -2384,6 +2425,9 @@ onUiLoaded(async () => {
     handleDrop() {
       const $prompt = this.modules.prompt;
       $prompt.addEventListener('drop', () => {
+        $prompt.dispatchEvent(new Event('prompt:backup'));
+      });
+      $prompt.addEventListener('prompt:backup', () => {
         /** @type {HTMLTextAreaElement} */ // @ts-ignore
         const $textarea = Finder.query('textarea', $prompt);
         const $backup = this.newModules.promptBackup;
