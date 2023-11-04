@@ -1156,7 +1156,7 @@ onUiLoaded(async () => {
       for (const [index, $orgAction_] of $orgActions.entries()) {
         /** @type {HTMLButtonElement} */ // @ts-ignore
         const $orgAction = $orgAction_;
-        // 0=Loraタグ挿入, 1=ページを開く, 2=トリガーワード挿入, 3=サンプルプロンプト
+        // 0=サムネイル置換, 1=ページを開く, 2=トリガーワード挿入, 3=サンプルプロンプト
         if (index === 0) {
           $actions.appendChild(newInsert());
         } else if (index === 3) {
