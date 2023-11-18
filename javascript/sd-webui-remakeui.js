@@ -412,6 +412,7 @@ onUiLoaded(async () => {
             standby: 'StandBy',
             processing: 'Processing',
             complete: 'Complete',
+            pending: 'Pending',
             error: 'Error',
           },
         },
@@ -2026,7 +2027,7 @@ onUiLoaded(async () => {
 
       /**
        * @param {{baseUrl: string, path: string, subdir: string, version: string, status: string}} model
-       * @return {Promise<boolean>}
+       * @return {Promise<string>}
        */
       const modelDownload = async (model) => {
         const $model = Finder.query(`#${this.modules.civitaiHelperModelSectionId} > div > div:nth-child(4)`);
@@ -2042,33 +2043,40 @@ onUiLoaded(async () => {
         const $button = Finder.query(`#${this.modules.civitaiHelperModelSectionId} > div > button`);
         $button.click();
         if (!await waitUntilModelDownload()) {
-          return false;
+          return I18n.t.civitaiHelper.model.statuses.pending;
         }
 
         const $elems = Finder.queryAll(`#${this.modules.civitaiHelperModelSectionId} > div > div`); // XXX div:nth-child(5)だと何故か取得できない
         const $status = Finder.query('p', $elems[4]);
         const result = $status.textContent || '';
-        return result.startsWith('Done') || result.endsWith('already existed') || false;
+        if (result.startsWith('Done') && result.endsWith('.pending')) {
+          return I18n.t.civitaiHelper.model.statuses.pending;
+        } else if (result.startsWith('Done') || result.endsWith('already existed')) {
+          return I18n.t.civitaiHelper.model.statuses.complete;
+        } else {
+          return I18n.t.civitaiHelper.model.statuses.error;
+        }
       };
 
       /**
        * @param {{baseUrl: string, path: string, subdir: string, version: string, status: string}} model
-       * @return {Promise<boolean>}
+       * @return {Promise<string>}
        */
       const download = async model => {
         if (!await infoDownload(model)) {
-          return false;
+          return I18n.t.civitaiHelper.model.statuses.error;
         }
 
         await Core.sleep(1000); // 対向システムへの負荷軽減
 
-        if (!await modelDownload(model)) {
-          return false;
+        const result = await modelDownload(model);
+        if (result !== I18n.t.civitaiHelper.model.statuses.complete) {
+          return result;
         }
 
         await Core.sleep(5000); // 対向システムへの負荷軽減
 
-        return true;
+        return I18n.t.civitaiHelper.model.statuses.complete;
       };
 
       while(true) {
@@ -2102,8 +2110,8 @@ onUiLoaded(async () => {
           status: target.$status.value,
         };
         Helper.selected(target.$status, I18n.t.civitaiHelper.model.statuses.processing);
-        const succeess = await download(model);
-        Helper.selected(target.$status, succeess ? I18n.t.civitaiHelper.model.statuses.complete : I18n.t.civitaiHelper.model.statuses.error);
+        const result = await download(model);
+        Helper.selected(target.$status, result);
       }
 
       console.log(aborted() ? 'bulk download aborted!' : 'bulk download completed!');
@@ -2198,6 +2206,7 @@ onUiLoaded(async () => {
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.standby));
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.processing));
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.complete));
+      $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.pending));
       $select.appendChild(Helper.option(I18n.t.civitaiHelper.model.statuses.error));
       $select.value = baseUrl && subdirExists ? I18n.t.civitaiHelper.model.statuses.standby : I18n.t.civitaiHelper.model.statuses.error;
       $status.appendChild($select);
