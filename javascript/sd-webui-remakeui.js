@@ -432,7 +432,9 @@ onUiLoaded(async () => {
      * @return {Boolean}
      */
     static get already() {
-      return Finder.exists('interactive-tag-selector');
+      return Finder.exists('tab_txt2img');
+      // XXX tag-selectorは一旦廃止
+      // return Finder.exists('interactive-tag-selector');
     }
 
     /**
@@ -448,6 +450,12 @@ onUiLoaded(async () => {
 
     /** @return {HTMLElement} */
     get pain() { return Finder.by(this.id('tab_txt2img')); }
+
+    /** @return {HTMLElement} */
+    get genContainer() { return Finder.by(this.id('txt2img_toprow')); }
+
+    /** @return {HTMLElement} */
+    get genSettings() { return Finder.by(this.id('txt2img_settings')); }
 
     /** @return {HTMLElement} */
     get prompt() { return Finder.by(this.id('txt2img_prompt')); }
@@ -555,7 +563,10 @@ onUiLoaded(async () => {
     get hiresFixOrDenoiseStrength() { return this._mode === 'txt2img' ? this.hiresFix : this.img2imgDenoiseStrength; } // XXX 互換性が無いUI
 
     /** @return {HTMLElement} */
-    get extraNetworks() { return Finder.by(this.id('txt2img_extra_networks')); }
+    get extraTabs() { return Finder.by(this.id('txt2img_extra_tabs')); }
+
+    /** @return {HTMLElement} */
+    get extraNetworks() { return Finder.by(this.id('txt2img_extra_networks')); } // XXX extra_tabsに変更？
 
     /** @return {HTMLElement} */
     get extraNetworksRefresh() { return Finder.by(this.id('txt2img_extra_refresh')); }
@@ -661,15 +672,27 @@ onUiLoaded(async () => {
      */
     exec() {
       const $pain = this.modules.pain;
-      const $top = Finder.query('div', $pain);
+      const $top = this.modules.genContainer;
+      const $settings = this.modules.genSettings;
       const $result = this.modules.results;
 
+      const $left = Helper.div();
+      $left.style['flex-grow'] = '1';
+      $left.appendChild($top);
+      $left.appendChild($settings);
+
+      const $right = Helper.div();
+      $right.style['flex-grow'] = '1';
+      $right.appendChild($result);
+
       const $container = Helper.div();
-      $container.classList.add('flex', 'row');
-      $container.appendChild($top);
-      $container.appendChild($result);
+      $container.style.display = 'flex';
+      $container.appendChild($left);
+      $container.appendChild($right);
 
       $pain.appendChild($container);
+
+      Helper.hide(this.modules.extraTabs);
     }
   }
 
@@ -2514,50 +2537,50 @@ onUiLoaded(async () => {
 
     const txt2imgs = [
       Txt2ImgTopExecutor,
-      HideToolsExecutor,
-      AlignSettingsExecutor,
-      AlignTagSelectorExecutor,
-      NewAspectToolExecutor,
-      NewLoraExecutor,
-      NewGenToolsExecutor,
-      NewPromptToolsExecutor,
-      AlignScriptEntriesExecutor,
-      RemakeResultFooterExecutor,
-      RemakeSettingTrackbarExecutor,
+      // HideToolsExecutor,
+      // AlignSettingsExecutor,
+      // AlignTagSelectorExecutor,
+      // NewAspectToolExecutor,
+      // NewLoraExecutor,
+      // NewGenToolsExecutor,
+      // NewPromptToolsExecutor,
+      // AlignScriptEntriesExecutor,
+      // RemakeResultFooterExecutor,
+      // RemakeSettingTrackbarExecutor,
     ];
     for (const ctor of txt2imgs) {
       new ctor('txt2img').exec();
     }
 
     const img2imgs = [
-      Img2ImgTopExecutor,
-      HideToolsExecutor,
-      AlignSettingsExecutor,
-      Img2ImgHideTools,
-      Img2ImgAlignSettingsExecutor,
-      Img2ImgNewSettingsExecutor,
-      NewAspectToolExecutor,
-      NewLoraExecutor,
-      NewGenToolsExecutor,
-      NewPromptToolsExecutor,
-      AlignScriptEntriesExecutor,
-      RemakeResultFooterExecutor,
+      // Img2ImgTopExecutor,
+      // HideToolsExecutor,
+      // AlignSettingsExecutor,
+      // Img2ImgHideTools,
+      // Img2ImgAlignSettingsExecutor,
+      // Img2ImgNewSettingsExecutor,
+      // NewAspectToolExecutor,
+      // NewLoraExecutor,
+      // NewGenToolsExecutor,
+      // NewPromptToolsExecutor,
+      // AlignScriptEntriesExecutor,
+      // RemakeResultFooterExecutor,
     ];
     for (const ctor of img2imgs) {
       new ctor('img2img').exec();
     }
 
     const others = [
-      TabAlignExecutor,
-      HideFooterExecutor,
+      // TabAlignExecutor,
+      // HideFooterExecutor,
     ];
     for (const ctor of others) {
       new ctor('txt2img').exec();
     }
 
     const civitaiHelpers = [
-      CivitaiHelperAlignToolsExecutor,
-      CivitaiHelperBulkDownloadExecutor,
+      // CivitaiHelperAlignToolsExecutor,
+      // CivitaiHelperBulkDownloadExecutor,
     ];
     for (const ctor of civitaiHelpers) {
       new ctor('txt2img').exec();
