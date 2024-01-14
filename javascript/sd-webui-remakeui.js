@@ -1776,6 +1776,7 @@ onUiLoaded(async () => {
       $model.id = this.modules.civitaiHelperModelSectionId;
 
       const $left = Helper.div();
+      $left.style['flex-grow'] = '1';
       $left.appendChild($model);
       $left.appendChild($info);
       $left.appendChild($scan);
@@ -1785,10 +1786,11 @@ onUiLoaded(async () => {
 
       const $right = Helper.div();
       $right.id = this.newModules.civitaiHelperBulkDownloadSectionId;
+      $right.style['flex-grow'] = '1';
       $right.classList.add('gr-block', 'gr-box', 'relative', 'w-full', 'border-solid', 'border', 'border-gray-200', 'gr-padded');
 
       const $row = Helper.div();
-      $row.classList.add('flex', 'row');
+      $row.style.display = 'flex';
       $row.appendChild($left);
       $row.appendChild($right);
 
@@ -2599,7 +2601,7 @@ onUiLoaded(async () => {
     }
 
     const civitaiHelpers = [
-      // CivitaiHelperAlignToolsExecutor,
+      CivitaiHelperAlignToolsExecutor,
       // CivitaiHelperBulkDownloadExecutor,
     ];
     for (const ctor of civitaiHelpers) {
