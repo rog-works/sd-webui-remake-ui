@@ -178,7 +178,7 @@ onUiLoaded(async () => {
      */
     static button() {
       const $ = document.createElement('button');
-      $.classList.add('gr-button', 'gr-button-lg', 'gr-button-tool');
+      $.classList.add('lg', 'secondary', 'gradio-button', 'tool', 'svelte-cmf5ev'); // XXX cmf5evは適当なハッシュだと思うので再現性は不明
       return $;
     }
 
@@ -1777,6 +1777,7 @@ onUiLoaded(async () => {
 
       const $left = Helper.div();
       $left.style['flex-grow'] = '1';
+      $left.style['max-width'] = '50%';
       $left.appendChild($model);
       $left.appendChild($info);
       $left.appendChild($scan);
@@ -1787,6 +1788,7 @@ onUiLoaded(async () => {
       const $right = Helper.div();
       $right.id = this.newModules.civitaiHelperBulkDownloadSectionId;
       $right.style['flex-grow'] = '1';
+      $right.style['max-width'] = '50%';
       $right.classList.add('gr-block', 'gr-box', 'relative', 'w-full', 'border-solid', 'border', 'border-gray-200', 'gr-padded');
 
       const $row = Helper.div();
@@ -1852,6 +1854,7 @@ onUiLoaded(async () => {
     makeTextarea() {
       const $textarea = Helper.textarea();
       $textarea.style['min-height'] = '250px';
+      $textarea.style['width'] = '100%';
       return $textarea;
     }
 
@@ -2014,7 +2017,7 @@ onUiLoaded(async () => {
           }
 
           const $wrap = Finder.query(`#${this.modules.civitaiHelperModelSectionId} > div > div:nth-child(4) div.wrap`);
-          if ($wrap.classList.contains('opacity-0')) {
+          if ($wrap.classList.contains('hide')) {
             /** @type {HTMLTextAreaElement} */ // @ts-ignore
             const $name = Finder.query(`#${this.modules.civitaiHelperModelSectionId} > div > div:nth-child(4) > div textarea`);
             return $name.value.length > 0;
@@ -2038,7 +2041,7 @@ onUiLoaded(async () => {
 
           const $elems = Finder.queryAll(`#${this.modules.civitaiHelperModelSectionId} > div > div`); // XXX div:nth-child(5)だと何故か取得できない
           const $wrap = Finder.query('div.wrap', $elems[4]);
-          if ($wrap.classList.contains('opacity-0')) {
+          if ($wrap.classList.contains('hide')) {
             return true;
           }
 
@@ -2076,12 +2079,16 @@ onUiLoaded(async () => {
        */
       const modelDownload = async (model) => {
         const $model = Finder.query(`#${this.modules.civitaiHelperModelSectionId} > div > div:nth-child(4)`);
-        /** @type {HTMLSelectElement} */ // @ts-ignore
-        const $subdir = Finder.query('div:nth-child(2) select', $model);
-        /** @type {HTMLSelectElement} */ // @ts-ignore
-        const $version = Finder.query('div:nth-child(3) select', $model);
-        Helper.selected($subdir, model.subdir);
-        Helper.selected($version, model.version === 'latent' ? $version.options[0].value : model.version)
+        /** @type {HTMLTextAreaElement} */ // @ts-ignore
+        const $subdir = Finder.query('div.form > div:nth-child(5) textarea', $model);
+        /** @type {HTMLInputElement} */ // @ts-ignore
+        const $version = Finder.query('div.form > div:nth-child(3) input', $model);
+        $subdir.value = model.subdir;
+        $version.value = model.version;
+        updateInput($subdir)
+        // FIXME dropdownに対しての操作は無力化されるので無意味
+        updateInput($version)
+        // FIXME
         await Core.sleep(10); // XXX DOM更新待ちのsleep
 
         /** @type {HTMLButtonElement} */ // @ts-ignore
@@ -2190,10 +2197,10 @@ onUiLoaded(async () => {
       let prevSubdir = '';
       for (const line of lines) {
         const [url, orgSubdir, orgVersion] = line.split(' ').filter(value => value.length);
-        const subdir = `\\${(orgSubdir || prevSubdir).split('/').filter(word => word.length).join('\\')}`;
+        const subdir = `/${orgSubdir || prevSubdir}`;
         const version = orgVersion || 'latent';
         this.addReserve($table, {url, subdir, version});
-        prevSubdir = subdir.split('\\').join('/');
+        prevSubdir = subdir;
       }
 
       this.clearTextarea($textarea);
@@ -2215,8 +2222,9 @@ onUiLoaded(async () => {
         const $select = Helper.select();
         let selected = false;
         for (const $subdir of $subdirs) {
-          const subdir = `\\${($subdir.textContent || '').trim().split('/').filter(word => word.length).join('\\')}`;
-          if (subdir === '\\all') {
+          const subdir_ = ($subdir.textContent || '').trim().split('/').filter(word => word.length).join('/');
+          const subdir = `/${subdir_}`
+          if (subdir === '/all') {
             continue;
           }
 
@@ -2602,7 +2610,7 @@ onUiLoaded(async () => {
 
     const civitaiHelpers = [
       CivitaiHelperAlignToolsExecutor,
-      // CivitaiHelperBulkDownloadExecutor,
+      CivitaiHelperBulkDownloadExecutor,
     ];
     for (const ctor of civitaiHelpers) {
       new ctor('txt2img').exec();
