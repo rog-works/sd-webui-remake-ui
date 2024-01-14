@@ -678,11 +678,13 @@ onUiLoaded(async () => {
 
       const $left = Helper.div();
       $left.style['flex-grow'] = '1';
+      $left.style['max-width'] = '50%';
       $left.appendChild($top);
       $left.appendChild($settings);
 
       const $right = Helper.div();
       $right.style['flex-grow'] = '1';
+      $right.style['max-width'] = '50%';
       $right.appendChild($result);
 
       const $container = Helper.div();
@@ -702,18 +704,36 @@ onUiLoaded(async () => {
      */
     exec() {
       const $pain = this.modules.pain;
-      const $top = Finder.query('div', $pain);
-
+      const $top = this.modules.genContainer;
+      const $settings = this.modules.genSettings;
       const $modes = this.modules.img2imgModes;
       const $result = this.modules.results;
 
+      const $left = Helper.div();
+      $left.style['flex-grow'] = '1';
+      $left.style['max-width'] = '33%';
+      $left.appendChild($top);
+      $left.appendChild($settings);
+
+      const $center = Helper.div();
+      $center.style['flex-grow'] = '1';
+      $center.style['max-width'] = '33%';
+      $center.appendChild($modes);
+
+      const $right = Helper.div();
+      $right.style['flex-grow'] = '1';
+      $right.style['max-width'] = '33%';
+      $right.appendChild($result);
+
       const $container = Helper.div();
-      $container.classList.add('flex', 'row');
-      $container.appendChild($top);
-      $container.appendChild($modes);
-      $container.appendChild($result);
+      $container.style.display = 'flex';
+      $container.appendChild($left);
+      $container.appendChild($center);
+      $container.appendChild($right);
 
       $pain.appendChild($container);
+
+      Helper.hide(this.modules.extraTabs);
     }
   }
 
@@ -2553,7 +2573,7 @@ onUiLoaded(async () => {
     }
 
     const img2imgs = [
-      // Img2ImgTopExecutor,
+      Img2ImgTopExecutor,
       // HideToolsExecutor,
       // AlignSettingsExecutor,
       // Img2ImgHideTools,
