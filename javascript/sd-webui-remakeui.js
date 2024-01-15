@@ -561,7 +561,7 @@ onUiLoaded(async () => {
     get seedContainer() { return Finder.by(this.id('txt2img_seed_row')); }
 
     /** @return {HTMLElement} */
-    get seedExtra() { return Finder.by(this.id('txt2img_subseed_show_box')); }
+    get seedExtra() { return Finder.by(this.id('txt2img_subseed_show')); }
 
     /** @return {HTMLElement} */
     get cfgScale() { return Finder.by(this.id('txt2img_cfg_scale')); }
@@ -570,7 +570,10 @@ onUiLoaded(async () => {
     get settings() { return Finder.by(this.id('txt2img_settings')); }
 
     /** @return {HTMLElement} @private */
-    get hiresFix() { return Finder.by('txt2img_hires_fix'); }
+    get hiresFix() { return Finder.by('txt2img_hr'); }
+
+    /** @return {HTMLElement} */
+    get refiner() { return Finder.by(this.id('txt2img_enable')); }
 
     /** @return {HTMLElement} @private */
     get img2imgDenoiseStrength() { return Finder.by('img2img_denoising_strength'); }
@@ -580,9 +583,6 @@ onUiLoaded(async () => {
 
     /** @return {HTMLElement} */
     get extraTabs() { return Finder.by(this.id('txt2img_extra_tabs')); }
-
-    /** @return {HTMLElement} */
-    get extraNetworks() { return Finder.by(this.id('txt2img_extra_networks')); } // XXX extra_tabsに変更？
 
     /** @return {HTMLElement} */
     get extraNetworksRefresh() { return Finder.by(this.id('txt2img_extra_refresh')); }
@@ -818,7 +818,7 @@ onUiLoaded(async () => {
 
       const $container = Helper.div();
       $container.id = this.newModules.seedStepsCfgContainerId;
-      $container.classList.add('flex', 'row', 'w-full', 'flex-wrap', 'gap-4');
+      $container.style.display = 'flex';
       $container.appendChild(this.modules.seedContainer);
       $container.appendChild(this.modules.steps);
       $container.appendChild(this.modules.cfgScale);
@@ -827,7 +827,7 @@ onUiLoaded(async () => {
       $settings.style['padding-top'] = 'initial';
       $settings.appendChild($container);
       $settings.appendChild(this.modules.hiresFixOrDenoiseStrength); // XXX 互換性が無いUI
-      $settings.appendChild(this.modules.extraNetworks);
+      $settings.appendChild(this.modules.refiner);
       $settings.appendChild(this.modules.scripts);
     }
 
@@ -2610,7 +2610,7 @@ onUiLoaded(async () => {
     const txt2imgs = [
       Txt2ImgTopExecutor,
       HideToolsExecutor,
-      // AlignSettingsExecutor,
+      AlignSettingsExecutor,
       // AlignTagSelectorExecutor,
       NewAspectToolExecutor,
       NewLoraExecutor,
@@ -2627,7 +2627,7 @@ onUiLoaded(async () => {
     const img2imgs = [
       Img2ImgTopExecutor,
       HideToolsExecutor,
-      // AlignSettingsExecutor,
+      AlignSettingsExecutor,
       // Img2ImgHideTools,
       // Img2ImgAlignSettingsExecutor,
       // Img2ImgNewSettingsExecutor,
