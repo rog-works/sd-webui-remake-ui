@@ -108,6 +108,13 @@ onUiLoaded(async () => {
     }
 
     /**
+     * @return {HTMLAnchorElement}
+     */
+    static a() {
+      return document.createElement('a');
+    }
+
+    /**
      * @return {HTMLSpanElement}
      */
     static span() {
@@ -451,7 +458,7 @@ onUiLoaded(async () => {
      * @return {Boolean}
      */
     static get already() {
-      return Finder.exists('txt2img_lora_cards');
+      return Finder.exists('img2img_lora_cards');
       // XXX tag-selectorは一旦廃止
       // return Finder.exists('interactive-tag-selector');
     }
@@ -593,8 +600,8 @@ onUiLoaded(async () => {
     /** @return {HTMLElement} */ // @ts-ignore
     get extraNetworksRefreshCivitai() { return Finder.by(this.id('txt2img_extra_close')).nextElementSibling; }
 
-    /** @return {NodeListOf<HTMLElement>} */
-    get extraNetworksTabs() { return Finder.queryAll('div.tabitem', Finder.by(this.id('txt2img_extra_tabs'))); }
+    /** @return {HTMLElement} */
+    get loraCardsWrap() { return Finder.query('div.form', Finder.by(this.id('txt2img_lora_cards_html'))); }
 
     /** @return {HTMLElement} */
     get loraCards() { return Finder.by(this.id('txt2img_lora_cards')); }
@@ -1389,13 +1396,12 @@ onUiLoaded(async () => {
        * @returns {Promise<void>}
        */
       const waitUntilRefresh = async () => {
-        const $tab = this.modules.extraNetworksTabs[0];
+        const $cardsWrap = this.modules.loraCardsWrap;
         let timeout = 0;
         while(timeout < 5000) {
           await Core.sleep(100);
 
-          const $loading = Finder.query('div > div > div.wrap', $tab);
-          if ($loading.classList.contains('opacity-0')) {
+          if ($cardsWrap.classList.contains('hide')) {
             return;
           }
 
@@ -2038,6 +2044,8 @@ onUiLoaded(async () => {
           } else {
             $applyButton.click();
           }
+          e.preventDefault();
+          e.stopPropagation();
         }
       });
     }
@@ -2250,7 +2258,7 @@ onUiLoaded(async () => {
         const subdir = `/${orgSubdir || prevSubdir}`;
         const version = orgVersion || 'latent';
         this.addReserve($table, {url, subdir, version});
-        prevSubdir = subdir;
+        prevSubdir = subdir.substring(1);
       }
 
       this.clearTextarea($textarea);
@@ -2289,7 +2297,11 @@ onUiLoaded(async () => {
 
       const [_, baseUrl, path] = model.url.match(/(https:\/\/civitai.com\/models\/\d+)(.*)/) || [];
       const $baseUrl = Helper.tableCell();
-      $baseUrl.textContent = baseUrl || '';
+      const $link = Helper.a();
+      $link.href = baseUrl || '';
+      $link.target = '_blank'
+      $link.textContent = $link.href;
+      $baseUrl.appendChild($link);
 
       const $path = Helper.tableCell();
       $path.textContent = path || '';
