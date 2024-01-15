@@ -458,7 +458,7 @@ onUiLoaded(async () => {
      * @return {Boolean}
      */
     static get already() {
-      return Finder.exists('img2img_lora_cards');
+      return Finder.exists('txt2img_lora_cards') && Finder.exists('img2img_lora_cards');
       // XXX tag-selectorは一旦廃止
       // return Finder.exists('interactive-tag-selector');
     }
@@ -601,7 +601,7 @@ onUiLoaded(async () => {
     get extraNetworksRefreshCivitai() { return Finder.by(this.id('txt2img_extra_close')).nextElementSibling; }
 
     /** @return {HTMLElement} */
-    get loraCardsWrap() { return Finder.query('div.form', Finder.by(this.id('txt2img_lora_cards_html'))); }
+    get loraCardsWrap() { return Finder.query('div.wrap', Finder.by(this.id('txt2img_lora_cards_html'))); }
 
     /** @return {HTMLElement} */
     get loraCards() { return Finder.by(this.id('txt2img_lora_cards')); }
@@ -1411,14 +1411,6 @@ onUiLoaded(async () => {
         console.warn('refresh wait timedout.');
       }
 
-      /**
-       * @returns {Promise<void>}
-       */
-      const postRefresh = async () => {
-        this.modules.extraNetworksRefreshCivitai.click();
-        await Core.sleep(100);
-      }
-
       const $refresh = Helper.button();
       $refresh.id = this.newModules.loraCardRefreshId;
       $refresh.style.margin = '0px'; // XXX
@@ -1426,7 +1418,6 @@ onUiLoaded(async () => {
       $refresh.addEventListener('click', async () => {
         beforeRefresh();
         await waitUntilRefresh();
-        await postRefresh();
 
         const $container = this.$$container;
         $container.removeChild(this.$$contents);
