@@ -1130,7 +1130,8 @@ onUiLoaded(async () => {
       $bottom.appendChild($imgBox);
 
       const $contents = Helper.div();
-      $contents.classList.add('flex', 'flex-col', 'p-4', 'm-2', 'border', 'lora_contents');
+      $contents.classList.add('lora_contents');
+      $contents.style.width = '100%';
       $contents.style['background'] = 'rgba(0, 0, 0, 0.5)';
       $contents.style['border-radius'] = '0.5rem';
       $contents.appendChild($top);
@@ -1144,22 +1145,6 @@ onUiLoaded(async () => {
      * @private
      */
     makeItem($card) {
-      /**
-       * @param {HTMLButtonElement} $orgAction
-       * @return {HTMLButtonElement}
-       */
-      const newAction = ($orgAction) => {
-        const $action = Helper.button();
-        $action.textContent = $orgAction.textContent;
-        $action.addEventListener('click', e => {
-          e.stopPropagation();
-          e.preventDefault();
-          $orgAction.click();
-        });
-
-        return $action;
-      };
-
       /**
        * @param {string} loraName
        * @return {HTMLButtonElement}
@@ -1249,7 +1234,7 @@ onUiLoaded(async () => {
       const $path = Helper.div();
       $path.textContent = Finder.query('.actions > .name', $card).textContent;
       $path.style['text-align'] = 'left';
-      $path.style['flex-basis'] = '50%';
+      $path.style['flex-basis'] = '60%';
       // 縦中心配置
       $path.style.display = 'flex';
       $path.style['align-items'] = 'center';
@@ -1264,7 +1249,7 @@ onUiLoaded(async () => {
       const loraName = $card.dataset.sortName || '';
       const loraPath = [loraDir, loraName].join('/');
       const $actions = Helper.div();
-      $actions.style['flex-basis'] = '40%';
+      $actions.style['flex-basis'] = '30%';
       $actions.appendChild(actionSwap(loraName));
       $actions.appendChild(actionOpen(loraPath));
       $actions.appendChild(actionWords(loraPath));
@@ -1306,7 +1291,7 @@ onUiLoaded(async () => {
           for (const $item of this.$$itemEntries) {
             const term = ($item.dataset.search_term || '').toLowerCase();
             const visible = values.filter(value => term.indexOf(value) >= 0).length == values.length;
-            $item.style.display = visible ? '' : 'none';
+            $item.style.display = visible ? 'flex' : 'none';
           }
 
           timerId = -1;
@@ -1824,7 +1809,7 @@ onUiLoaded(async () => {
 
       const $left = Helper.div();
       $left.style['flex-grow'] = '1';
-      $left.style['max-width'] = '50%';
+      $left.style.width = '50%';
       $left.appendChild($model);
       $left.appendChild($info);
       $left.appendChild($scan);
@@ -1835,7 +1820,7 @@ onUiLoaded(async () => {
       const $right = Helper.div();
       $right.id = this.newModules.civitaiHelperBulkDownloadSectionId;
       $right.style['flex-grow'] = '1';
-      $right.style['max-width'] = '50%';
+      $right.style.width = '50%';
       $right.classList.add('gr-block', 'gr-box', 'relative', 'w-full', 'border-solid', 'border', 'border-gray-200', 'gr-padded');
 
       const $row = Helper.div();
