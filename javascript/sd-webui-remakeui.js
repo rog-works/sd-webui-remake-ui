@@ -2,6 +2,9 @@
 
 /** @type { import("./types").onUiLoaded } */
 /** @type { import("./types").GradioApp } */
+/** @type { import("./types").open_model_url } */
+/** @type { import("./types").add_trigger_words } */
+/** @type { import("./types").use_preview_prompt } */
 
 onUiLoaded(async () => {
   class Core {
@@ -67,6 +70,19 @@ onUiLoaded(async () => {
       }
 
       return $;
+    }
+
+    /**
+     * @param {string} selector
+     * @param {HTMLElement | null} $from
+     * @return {HTMLElement | null}
+     */
+    static findQuery(selector, $from = null) {
+      if ($from) {
+        return $from.querySelector(selector);
+      } else {
+        return Core.app.querySelector(selector);
+      }
     }
 
     /**
@@ -376,6 +392,9 @@ onUiLoaded(async () => {
         newest: '新着順',
         refresh: '♻️',
         swap: '🔁',
+        open: '🌐',
+        words: '🔖',
+        example: '🗣',
       },
       aspectTools: {
         x23: '2:3',
@@ -432,7 +451,7 @@ onUiLoaded(async () => {
      * @return {Boolean}
      */
     static get already() {
-      return Finder.exists('tab_txt2img');
+      return Finder.exists('txt2img_lora_cards');
       // XXX tag-selectorは一旦廃止
       // return Finder.exists('interactive-tag-selector');
     }
@@ -1046,6 +1065,7 @@ onUiLoaded(async () => {
       const $items = Helper.div();
       $items.classList.add('lora_items');
       $items.style['overflow-y'] = 'scroll';
+      $items.style.width = '50%';
 
       const $img = Helper.img();
       $img.src = I18n.t.image.notFound;
@@ -1055,6 +1075,7 @@ onUiLoaded(async () => {
       const $imgBox = Helper.div();
       $imgBox.style['overflow-y'] = 'auto';
       $imgBox.appendChild($img);
+      $imgBox.style.width = '50%';
 
       for (const $card of Finder.queryAll('.card', this.modules.loraCards)) {
         const $item = this.makeItem($card);
@@ -1076,7 +1097,8 @@ onUiLoaded(async () => {
       $refresh.style['flex-basis'] = '10%';
 
       const $top = Helper.div();
-      $top.classList.add('flex', 'row');
+      $top.style.display = 'flex';
+      $top.style.width = '100%';
       $top.style.padding = '1rem 0';
       $top.appendChild($search);
       $top.appendChild($subDirs);
@@ -1084,8 +1106,10 @@ onUiLoaded(async () => {
       $top.appendChild($refresh);
 
       const $bottom = Helper.div();
-      $bottom.classList.add('flex', 'row');
+      $bottom.style.display = 'flex';
+      $top.style.width = '100%';
       $bottom.style['min-height'] = 'calc(100% - 100px)';
+      $bottom.style['max-height'] = '100%';
       $bottom.appendChild($items);
       $bottom.appendChild($imgBox);
 
@@ -1121,9 +1145,10 @@ onUiLoaded(async () => {
       };
 
       /**
+       * @param {string} loraName
        * @return {HTMLButtonElement}
        */
-      const newInsert = () => {
+      const actionSwap = (loraName) => {
         const $action = Helper.button();
         $action.textContent = I18n.t.lora.swap;
         $action.addEventListener('click', e => {
@@ -1135,12 +1160,12 @@ onUiLoaded(async () => {
           const matches = $textarea.value.match(new RegExp(pattern, 'g')) || [];
           const contains = matches.filter(loraTag => {
             const inMatches = loraTag.match(new RegExp(pattern));
-            return inMatches && inMatches[2] === $path.textContent;
+            return inMatches && inMatches[2] === loraName;
           }).length > 0;
           if (!contains && matches.length > 0) {
             const first = matches[0] || '';
             const [, loraType, , loraWeight] = first.match(new RegExp(pattern)) || [];
-            $textarea.value = $textarea.value.replace(first, `<${loraType}:${$path.textContent}:${loraWeight}>`);
+            $textarea.value = $textarea.value.replace(first, `<${loraType}:${loraName}:${loraWeight}>`);
             updateInput($textarea);
           }
         });
@@ -1149,26 +1174,51 @@ onUiLoaded(async () => {
       };
 
       /**
-       * @param {HTMLButtonElement} $orgAction
+       * @param {string} searchTerm
        * @return {HTMLButtonElement}
        */
-      const newPrompt = ($orgAction) => {
+      const actionOpen = (searchTerm) => {
         const $action = Helper.button();
-        $action.textContent = $orgAction.textContent;
+        $action.textContent = I18n.t.lora.open;
         $action.addEventListener('click', e => {
-          e.stopPropagation();
-          e.preventDefault();
-          // @see NewPromptToolsExecutor.handleDrop
-          this.modules.prompt.dispatchEvent(new Event('prompt:backup'));
-          $orgAction.click();
+          open_model_url(e, 'lora', searchTerm);
         });
 
         return $action;
       };
 
+      /**
+       * @param {string} searchTerm
+       * @return {HTMLButtonElement}
+       */
+      const actionWords = (searchTerm) => {
+        const $action = Helper.button();
+        $action.textContent = I18n.t.lora.words;
+        $action.addEventListener('click', e => {
+          add_trigger_words(e, 'lora', searchTerm);
+        });
+
+        return $action;
+      };
+
+      /**
+       * @param {string} searchTerm
+       * @return {HTMLButtonElement}
+       */
+      const actionExample = (searchTerm) => {
+        const $action = Helper.button();
+        $action.textContent = I18n.t.lora.example;
+        $action.addEventListener('click', e => {
+          use_preview_prompt(e, 'lora', searchTerm);
+        });
+
+        return $action;
+      };
+
+      /** @type {HTMLImageElement | null} */ // @ts-ignore
+      const $orgThumb = Finder.findQuery('img', $card);
       const $thumb = Helper.img();
-      const matches = $card.style['background-image'].match(/"(.+)"/);
-      $thumb.src = matches ? matches[1] : I18n.t.image.notFound;
+      $thumb.src = $orgThumb ? $orgThumb.src : I18n.t.image.notFound;
       $thumb.style.width = '25px';
       $thumb.style.height = 'auto';
 
@@ -1183,7 +1233,7 @@ onUiLoaded(async () => {
       const $path = Helper.div();
       $path.textContent = Finder.query('.actions > .name', $card).textContent;
       $path.style['text-align'] = 'left';
-      $path.style['flex-basis'] = '60%';
+      $path.style['flex-basis'] = '50%';
       // 縦中心配置
       $path.style.display = 'flex';
       $path.style['align-items'] = 'center';
@@ -1192,34 +1242,28 @@ onUiLoaded(async () => {
       $path.style['white-space'] = 'nowrap';
       $path.style['text-overflow'] = 'ellipsis';
 
+      // sortPath: '/stable-diffution/models/lora/path/to'
+      // sortName: 'lora_name.safetensors'
+      const loraDir = ($card.dataset.sortPath || '').split('/').slice(4).join('/');;
+      const loraName = $card.dataset.sortName || '';
+      const loraPath = [loraDir, loraName].join('/');
       const $actions = Helper.div();
-      $actions.style['flex-basis'] = '30%';
-
-      // XXX CivitaiHelperのバグで更新時に4つ以上にボタンが増殖するため、先頭の4つだけ利用する
-      const $orgActions = Array.from(Finder.queryAll('.actions > .additional > ul > a', $card)).slice(0, 4);
-      for (const [index, $orgAction_] of $orgActions.entries()) {
-        /** @type {HTMLButtonElement} */ // @ts-ignore
-        const $orgAction = $orgAction_;
-        // 0=サムネイル置換, 1=ページを開く, 2=トリガーワード挿入, 3=サンプルプロンプト
-        if (index === 0) {
-          $actions.appendChild(newInsert());
-        } else if (index === 3) {
-          $actions.appendChild(newPrompt($orgAction));
-        } else {
-          $actions.appendChild(newAction($orgAction));
-        }
-      }
+      $actions.style['flex-basis'] = '40%';
+      $actions.appendChild(actionSwap(loraName));
+      $actions.appendChild(actionOpen(loraPath));
+      $actions.appendChild(actionWords(loraPath));
+      $actions.appendChild(actionExample(loraPath));
 
       const timeMatches = $thumb.src.match(/mtime=(\d+)/);
       const timestamp = timeMatches ? parseInt(timeMatches[1]) : 0;
 
-      const $searchTerm = Finder.query('.actions > .additional > .search_term', $card);
       const $item = Helper.div();
-      $item.classList.add('flex', 'lora_item');
+      $item.classList.add('lora_item');
+      $item.style.display = 'flex';
       $item.style['border-bottom'] = '1px white solid';
       $item.style['margin-bottom'] = '8px';
       $item.dataset.timestamp = `${timestamp}`;
-      $item.dataset.search_term = $searchTerm.textContent || '';
+      $item.dataset.search_term = loraPath;
       $item.appendChild($imgBox);
       $item.appendChild($path);
       $item.appendChild($actions);
@@ -1245,7 +1289,7 @@ onUiLoaded(async () => {
           const values = $search.value.toLowerCase().split(' ').filter(str => str.trim().length > 0);
           for (const $item of this.$$itemEntries) {
             const term = ($item.dataset.search_term || '').toLowerCase();
-            const visible = values.filter(value => term.indexOf(value) > 0).length == values.length;
+            const visible = values.filter(value => term.indexOf(value) >= 0).length == values.length;
             $item.style.display = visible ? '' : 'none';
           }
 
@@ -1384,7 +1428,8 @@ onUiLoaded(async () => {
      */
     makeContainer($space, $contents) {
       const $container = Helper.div();
-      $container.classList.add('flex', 'row', 'lora_container');
+      $container.classList.add('lora_container');
+      $container.style.display = 'flex';
       $container.style.width = '100%';
       $container.style.height = '100%';
       // $container.appendChild($space); XXX 一旦廃止
@@ -2571,7 +2616,7 @@ onUiLoaded(async () => {
       // AlignSettingsExecutor,
       // AlignTagSelectorExecutor,
       // NewAspectToolExecutor,
-      // NewLoraExecutor,
+      NewLoraExecutor,
       // NewGenToolsExecutor,
       // NewPromptToolsExecutor,
       // AlignScriptEntriesExecutor,
@@ -2590,7 +2635,7 @@ onUiLoaded(async () => {
       // Img2ImgAlignSettingsExecutor,
       // Img2ImgNewSettingsExecutor,
       // NewAspectToolExecutor,
-      // NewLoraExecutor,
+      NewLoraExecutor,
       // NewGenToolsExecutor,
       // NewPromptToolsExecutor,
       // AlignScriptEntriesExecutor,
