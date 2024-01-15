@@ -483,7 +483,10 @@ onUiLoaded(async () => {
     get results() { return Finder.by(this.id('txt2img_results')); }
 
     /** @return {HTMLElement} */
-    get resultButtons() { return Finder.by(this.id('image_buttons_txt2img')); }
+    get sendToImg2Img() { return Finder.by(this.id('txt2img_send_to_img2img')); }
+
+    /** @return {HTMLElement} */
+    get sendToInpaint() { return Finder.by(this.id('txt2img_send_to_inpaint')); }
 
     /** @return {HTMLElement} */ // @ts-ignore
     get resultImageFooter() { return Finder.by(this.id('txt2img_gallery_container')).nextElementSibling; }
@@ -1569,10 +1572,9 @@ onUiLoaded(async () => {
      * @private
      */
     makeButtons() {
-      const $root = this.modules.resultButtons;
       return [
-        this.makeButton(I18n.t.sendButtons.img2img, Finder.query('#img2img_tab', $root)),
-        this.makeButton(I18n.t.sendButtons.inpaint, Finder.query('#inpaint_tab', $root)),
+        this.makeButton(I18n.t.sendButtons.img2img, this.modules.sendToImg2Img),
+        this.makeButton(I18n.t.sendButtons.inpaint, this.modules.sendToInpaint),
       ];
     }
 
@@ -2617,7 +2619,7 @@ onUiLoaded(async () => {
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
       // AlignScriptEntriesExecutor,
-      // RemakeResultFooterExecutor,
+      RemakeResultFooterExecutor,
       // RemakeSettingTrackbarExecutor,
     ];
     for (const ctor of txt2imgs) {
@@ -2636,7 +2638,7 @@ onUiLoaded(async () => {
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
       // AlignScriptEntriesExecutor,
-      // RemakeResultFooterExecutor,
+      RemakeResultFooterExecutor,
     ];
     for (const ctor of img2imgs) {
       new ctor('img2img').exec();
