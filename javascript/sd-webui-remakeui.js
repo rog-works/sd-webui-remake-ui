@@ -606,7 +606,7 @@ onUiLoaded(async () => {
     get scripts() { return Finder.by(this.id('txt2img_script_container')); }
 
     /** @return {NodeListOf<HTMLElement>} */
-    get scriptEntries() { return Finder.queryAll(`#${this.id('txt2img_script_container')} > div`); }
+    get scriptEntries() { return Finder.queryAll(`#${this.id('txt2img_script_container')} > div > div`); }
 
     /** @return {HTMLElement} */
     get civitaiHelper() { return Finder.by(this.id('tab_civitai_helper')); }
@@ -817,7 +817,13 @@ onUiLoaded(async () => {
      */
     align() {
       const $toolsContainer = this.modules.toolsContainer;
-      this.modules.sampler.appendChild($toolsContainer);
+      $toolsContainer.style['min-width'] = null;
+
+      const $sampler = this.modules.sampler;
+      const $samplingMethod = Finder.query('div.form', $sampler);
+      $samplingMethod.style['min-width'] = null;
+      $samplingMethod.style['flex-grow'] = null;
+      $sampler.appendChild($toolsContainer);
 
       const $container = Helper.div();
       $container.id = this.newModules.seedStepsCfgContainerId;
@@ -832,6 +838,10 @@ onUiLoaded(async () => {
       $settings.appendChild(this.modules.hiresFixOrDenoiseStrength); // XXX 互換性が無いUI
       $settings.appendChild(this.modules.refiner);
       $settings.appendChild(this.modules.scripts);
+
+      // XXX 不要な空のセクションが出来るため非表示
+      const $emptySection = Finder.query('div.form', this.modules.tools);
+      Helper.hide($emptySection);
     }
 
     /**
@@ -1642,39 +1652,34 @@ onUiLoaded(async () => {
       const $entries = this.modules.scriptEntries;
       // XXX エントリーにidが無いためインデックス参照
       const $contents = {
-        blockWeight: $entries[0],
         adetailer: $entries[1],
-        additionalNetworks: $entries[3],
-        controlNet: $entries[4],
-        script: $entries[5],
+        blockWeight: $entries[2],
+        script: $entries[3],
+        // XXX ControlNetは一旦廃止
+        // controlNet: $entries[4],
       };
-      const $remains = [$entries[2], ...Array.from($entries).slice(6)];
+      const $remains = Array.from($entries).slice(5);
       const targets = {
-        blockWeight: {
-          icon: I18n.t.scripts.blockWeight,
-          $content: $contents.blockWeight,
-          $enabler: Finder.query('#lbw_active input[type="checkbox"]', $contents.blockWeight),
-        },
         adetailer: {
           icon: I18n.t.scripts.adetailer,
           $content: $contents.adetailer,
           $enabler: Finder.query(`#${this.modules.id('script_txt2img_adetailer_ad_enable')} input[type="checkbox"]`, $contents.adetailer),
         },
-        additionalNetworks: {
-          icon: I18n.t.scripts.additionalNetworks,
-          $content: $contents.additionalNetworks,
-          $enabler: Finder.query('input[type="checkbox"]', $contents.additionalNetworks),
-        },
-        controlNet: {
-          icon: I18n.t.scripts.controlNet,
-          $content: $contents.controlNet,
-          $enabler: Finder.query('input[type="checkbox"]', $contents.controlNet),
+        blockWeight: {
+          icon: I18n.t.scripts.blockWeight,
+          $content: $contents.blockWeight,
+          $enabler: Finder.query('#lbw_active input[type="checkbox"]', $contents.blockWeight),
         },
         script: {
           icon: I18n.t.scripts.script,
           $content: $contents.script,
-          $enabler: Finder.query('select', $contents.script),
+          $enabler: Finder.query('input', $contents.script),
         },
+        // controlNet: {
+        //   icon: I18n.t.scripts.controlNet,
+        //   $content: $contents.controlNet,
+        //   $enabler: Finder.query('input[type="checkbox"]', $contents.controlNet),
+        // },
       };
       const $pain = this.modules.pain;
       /** @type {HTMLButtonElement} */ // @ts-ignore
@@ -1698,7 +1703,10 @@ onUiLoaded(async () => {
         }
       }
 
-      Finder.query(`#${this.modules.id('sampler_selection_txt2img')} > div:nth-child(2)`).appendChild($buttons);;
+      this.modules.sampler.appendChild($buttons);
+
+      // XXX Block Weightの重複エントリーが最後の要素に入るため非表示に設定
+      Helper.hide($remains[$remains.length - 1]);
     }
 
     /**
@@ -1735,9 +1743,8 @@ onUiLoaded(async () => {
           if (('type' in $enabler) && $enabler.type === 'checkbox') {
             $enabler.click();
           } else {
-            /** @type {HTMLSelectElement} */ // @ts-ignore
-            const $select = $enabler;
-            Helper.selected($select, $select.options[0].value);
+            // FIXME Dropdownは外部から操作不能なため一旦非対応
+            console.warn(`Not supported dropdown enabler. ${icon}`);
           }
         } else {
           Helper.shown($overlay, $overlay.style.display !== 'block');
@@ -2618,7 +2625,7 @@ onUiLoaded(async () => {
       NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
-      // AlignScriptEntriesExecutor,
+      AlignScriptEntriesExecutor,
       RemakeResultFooterExecutor,
       // RemakeSettingTrackbarExecutor,
     ];
@@ -2637,7 +2644,7 @@ onUiLoaded(async () => {
       NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
-      // AlignScriptEntriesExecutor,
+      AlignScriptEntriesExecutor,
       RemakeResultFooterExecutor,
     ];
     for (const ctor of img2imgs) {
