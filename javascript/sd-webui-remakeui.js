@@ -552,9 +552,6 @@ onUiLoaded(async () => {
     get toolsStyleApply() { return Finder.by(this.id('txt2img_style_apply')); }
 
     /** @return {HTMLElement} */
-    get toolsStyleCreate() { return Finder.by(this.id('txt2img_style_create')); }
-
-    /** @return {HTMLElement} */
     get sampler() { return Finder.by(this.id('sampler_selection_txt2img')); }
 
     /** @return {HTMLElement} */
@@ -763,7 +760,6 @@ onUiLoaded(async () => {
     exec() {
       Helper.hide(this.modules.toolsClearPrompt);
       Helper.hide(this.modules.toolsStyleApply);
-      Helper.hide(this.modules.toolsStyleCreate);
       Helper.hide(this.modules.toolsStyleSelect);
     }
   }
@@ -2387,7 +2383,7 @@ onUiLoaded(async () => {
       Helper.leaveButton(buttons.$stop);
       Helper.leaveButton(buttons.$skip);
 
-      this.modules.tokenCounter.after($container);
+      this.modules.prompt.before($container);
     }
 
     /**
@@ -2612,13 +2608,13 @@ onUiLoaded(async () => {
 
     const txt2imgs = [
       Txt2ImgTopExecutor,
-      // HideToolsExecutor,
+      HideToolsExecutor,
       // AlignSettingsExecutor,
       // AlignTagSelectorExecutor,
       // NewAspectToolExecutor,
       NewLoraExecutor,
       NewGenToolsExecutor,
-      // NewPromptToolsExecutor,
+      NewPromptToolsExecutor,
       // AlignScriptEntriesExecutor,
       // RemakeResultFooterExecutor,
       // RemakeSettingTrackbarExecutor,
@@ -2629,7 +2625,7 @@ onUiLoaded(async () => {
 
     const img2imgs = [
       Img2ImgTopExecutor,
-      // HideToolsExecutor,
+      HideToolsExecutor,
       // AlignSettingsExecutor,
       // Img2ImgHideTools,
       // Img2ImgAlignSettingsExecutor,
@@ -2637,7 +2633,7 @@ onUiLoaded(async () => {
       // NewAspectToolExecutor,
       NewLoraExecutor,
       NewGenToolsExecutor,
-      // NewPromptToolsExecutor,
+      NewPromptToolsExecutor,
       // AlignScriptEntriesExecutor,
       // RemakeResultFooterExecutor,
     ];
