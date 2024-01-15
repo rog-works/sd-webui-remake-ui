@@ -2384,6 +2384,7 @@ onUiLoaded(async () => {
       Helper.leaveButton(buttons.$skip);
 
       this.modules.prompt.before($container);
+      this.modules.genContainer.classList.remove('svelte-15lo0d8'); // XXX '15lo0d8'はハッシュ値と思われるので再現性は不明
     }
 
     /**
@@ -2611,7 +2612,7 @@ onUiLoaded(async () => {
       HideToolsExecutor,
       // AlignSettingsExecutor,
       // AlignTagSelectorExecutor,
-      // NewAspectToolExecutor,
+      NewAspectToolExecutor,
       NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
@@ -2630,7 +2631,7 @@ onUiLoaded(async () => {
       // Img2ImgHideTools,
       // Img2ImgAlignSettingsExecutor,
       // Img2ImgNewSettingsExecutor,
-      // NewAspectToolExecutor,
+      NewAspectToolExecutor,
       NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
