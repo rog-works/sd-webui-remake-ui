@@ -1246,7 +1246,7 @@ onUiLoaded(async () => {
       // sortPath: '/stable-diffution/models/lora/path/to'
       // sortName: 'lora_name.safetensors'
       const loraDir = ($card.dataset.sortPath || '').split('/').slice(4).join('/');;
-      const loraName = $card.dataset.sortName || '';
+      const loraName = ($card.dataset.sortName || '').split('.')[0];
       const loraPath = [loraDir, loraName].join('/');
       const $actions = Helper.div();
       $actions.style['flex-basis'] = '30%';
