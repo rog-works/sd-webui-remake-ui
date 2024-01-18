@@ -1124,8 +1124,7 @@ onUiLoaded(async () => {
       const $bottom = Helper.div();
       $bottom.style.display = 'flex';
       $top.style.width = '100%';
-      $bottom.style['min-height'] = 'calc(100% - 100px)';
-      $bottom.style['max-height'] = '100%';
+      $bottom.style.height = 'calc(100% - 80px)';
       $bottom.appendChild($items);
       $bottom.appendChild($imgBox);
 
