@@ -1342,8 +1342,10 @@ onUiLoaded(async () => {
         /** @type {{timestamp: string, term: string, elem: HTMLElement}[]} */
         const terms = [];
         for (const $item of this.$$itemEntries) {
-          const term = $item.dataset.search_term?.toLowerCase() || '';
-          terms.push({timestamp: $item.dataset.timestamp || '', term: term, elem: $item});
+          if ($item.style.display != 'none') {
+            const term = $item.dataset.search_term?.toLowerCase() || '';
+            terms.push({timestamp: $item.dataset.timestamp || '', term: term, elem: $item});
+          }
         }
 
         terms.sort((a, b) => {
