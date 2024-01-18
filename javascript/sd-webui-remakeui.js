@@ -1307,10 +1307,8 @@ onUiLoaded(async () => {
      */
     makeSubDirs() {
       const $selectBox = Helper.select();
-      const subdirs = Array.from(Finder.queryAll('button', this.modules.loraSubDirs)).map($dir => ($dir.textContent || '').trim()).filter(subdir => subdir != 'all');
-      subdirs.sort();
-      subdirs.unshift('all');
-      for (const subdir of subdirs) {
+      const subdirs = Array.from(Finder.queryAll('button', this.modules.loraSubDirs)).map($dir => ($dir.textContent || '').trim()).filter(subdir => subdir != 'all').sort();
+      for (const subdir of ['all', ...subdirs]) {
         const $option = Helper.option(subdir);
         $selectBox.appendChild($option);
       }
@@ -2257,11 +2255,11 @@ onUiLoaded(async () => {
        * @returns {[boolean, HTMLSelectElement]}
        */
       const makeSubdirSelect = (initialValue) => {
-        const $subdirs = Finder.queryAll('button', this.modules.loraSubDirs);
+        const subdirs = Array.from(Finder.queryAll('button', this.modules.loraSubDirs)).map($subdir => ($subdir.textContent || '').trim()).sort();
         const $select = Helper.select();
         let selected = false;
-        for (const $subdir of $subdirs) {
-          const subdir_ = ($subdir.textContent || '').trim().split('/').filter(word => word.length).join('/');
+        for (const orgSubdir of subdirs) {
+          const subdir_ = orgSubdir.split('/').filter(word => word.length).join('/');
           const subdir = `/${subdir_}`
           if (subdir === '/all') {
             continue;
