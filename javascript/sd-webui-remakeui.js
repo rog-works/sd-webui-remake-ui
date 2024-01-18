@@ -1287,9 +1287,10 @@ onUiLoaded(async () => {
         }
         timerId = setTimeout(() => {
           const values = $search.value.toLowerCase().split(' ').filter(str => str.trim().length > 0);
+          const inAll = values.includes('all');
           for (const $item of this.$$itemEntries) {
             const term = ($item.dataset.search_term || '').toLowerCase();
-            const visible = values.filter(value => term.indexOf(value) >= 0).length == values.length;
+            const visible = inAll || values.filter(value => term.indexOf(value) >= 0).length == values.length;
             $item.style.display = visible ? 'flex' : 'none';
           }
 
