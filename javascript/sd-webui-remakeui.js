@@ -1307,8 +1307,11 @@ onUiLoaded(async () => {
      */
     makeSubDirs() {
       const $selectBox = Helper.select();
-      for (const $dir of Finder.queryAll('button', this.modules.loraSubDirs)) {
-        const $option = Helper.option(($dir.textContent || '').trim());
+      const subdirs = Array.from(Finder.queryAll('button', this.modules.loraSubDirs)).map($dir => ($dir.textContent || '').trim()).filter(subdir => subdir != 'all');
+      subdirs.sort();
+      subdirs.unshift('all');
+      for (const subdir of subdirs) {
+        const $option = Helper.option(subdir);
         $selectBox.appendChild($option);
       }
 
