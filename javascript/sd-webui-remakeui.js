@@ -154,7 +154,7 @@ onUiLoaded(async () => {
     static checkbox() {
       const $ = document.createElement('input');
       $.type = 'checkbox';
-      $.classList.add('gr-check-radio', 'gr-checkbox');
+      $.classList.add('gr-check-radio', 'gr-checkbox', 'svelte-1ojmf70'); // XXX '1ojmf70'は適当なハッシュだと思うので再現性は不明
       $.style.margin = '0px 10px';
       return $;
     }
