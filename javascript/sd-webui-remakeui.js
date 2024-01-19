@@ -648,6 +648,9 @@ onUiLoaded(async () => {
     /** @return {string} */
     get genToolsId() { return this.id('txt2img_new_gen_tools'); }
 
+    /** @return {HTMLElement} */
+    get toolsPaste() { return Finder.query(this.id('#paste'), Finder.by(this.id('txt2img_prompt_row'))); }
+
     /** @return {string} */
     get promptBackupId() { return this.id('txt2img_prompt_backup'); }
 
@@ -2578,6 +2581,20 @@ onUiLoaded(async () => {
         updateInput($trackbar);
         updateInput($numeric);
       });
+      this.newModules.toolsPaste.addEventListener('click', async () => {
+        await Core.sleep(100); // XXX DOM更新待ちのsleep
+
+        let nextIndex = 0;
+        for (const index in values) {
+          const candidate = values[index];
+          if (candidate <= parseInt($trackbar.value)) {
+            nextIndex = parseInt(index);
+          }
+        }
+
+        $newTrackbar.value = String(nextIndex);
+        updateInput($newTrackbar);
+      });
 
       $container.appendChild($newTrackbar);
       Helper.hide($trackbar);
@@ -2618,7 +2635,7 @@ onUiLoaded(async () => {
       NewPromptToolsExecutor,
       AlignScriptEntriesExecutor,
       RemakeResultFooterExecutor,
-      // RemakeSettingTrackbarExecutor,
+      RemakeSettingTrackbarExecutor,
     ];
     for (const ctor of txt2imgs) {
       new ctor('txt2img').exec();
@@ -2644,7 +2661,7 @@ onUiLoaded(async () => {
 
     const others = [
       // TabAlignExecutor,
-      // HideFooterExecutor,
+      HideFooterExecutor,
     ];
     for (const ctor of others) {
       new ctor('txt2img').exec();
