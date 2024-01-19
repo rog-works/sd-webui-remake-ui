@@ -2649,7 +2649,7 @@ onUiLoaded(async () => {
       HideToolsExecutor,
       AlignSettingsExecutor,
       // Img2ImgHideTools,
-      // Img2ImgAlignSettingsExecutor,
+      Img2ImgAlignSettingsExecutor,
       // Img2ImgNewSettingsExecutor,
       NewAspectToolExecutor,
       NewLoraExecutor,
