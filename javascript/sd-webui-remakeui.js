@@ -1759,37 +1759,40 @@ onUiLoaded(async () => {
         const $checkbox = $enabler;
         const handler = () => {
           if ($checkbox.checked) {
-            $button.classList.add('text-green-500');
+            $button.style.color = 'var(--color-green-500)';
           } else {
-            $button.classList.remove('text-green-500');
+            $button.style.color = '';
           }
         };
 
         if ($checkbox.checked) {
-          $button.classList.add('text-green-500');
+          $button.style.color = 'var(--color-green-500)';
         }
 
         $enabler.addEventListener('change', handler);
         // XXX 反映までのタイムラグがあるため一定時間後にハンドラーを呼び出す
         $applyer.addEventListener('click', () => setTimeout(handler, 1000));
       } else {
-        /** @type {HTMLSelectElement} */ // @ts-ignore
-        const $select = $enabler;
-        const handler = () => {
-          if ($select.selectedIndex > 0) {
-            $button.classList.add('text-green-500');
-          } else {
-            $button.classList.remove('text-green-500');
-          }
-        };
+        // FIXME Dropdownは外部から操作不能なため一旦非対応
+        console.warn('Not supported dropdown enabler.');
 
-        if ($select.selectedIndex > 0) {
-          $button.classList.add('text-green-500');
-        }
+        // /** @type {HTMLSelectElement} */ // @ts-ignore
+        // const $select = $enabler;
+        // const handler = () => {
+        //   if ($select.selectedIndex > 0) {
+        //     $button.style.color = 'var(--color-green-500)';
+        //   } else {
+        //     $button.style.color = '';
+        //   }
+        // };
 
-        $enabler.addEventListener('change', handler);
-        // XXX 反映までのタイムラグがあるため一定時間後にハンドラーを呼び出す
-        $applyer.addEventListener('click', () => setTimeout(handler, 1000));
+        // if ($select.selectedIndex > 0) {
+        //   $button.style.color = 'var(--color-green-500)';
+        // }
+
+        // $enabler.addEventListener('change', handler);
+        // // XXX 反映までのタイムラグがあるため一定時間後にハンドラーを呼び出す
+        // $applyer.addEventListener('click', () => setTimeout(handler, 1000));
       }
     }
 
