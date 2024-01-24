@@ -134,6 +134,8 @@ onUiLoaded(async () => {
     static textarea() {
       const $ = document.createElement('textarea');
       $.classList.add('scroll-hide', 'block', 'gr-box', 'gr-input', 'w-full', 'gr-text-input');
+      $.style['background'] = 'var(--input-background-fill)';
+      $.style['color'] = 'var(--body-text-color)';
       $.placeholder = '';
       return $;
     }
@@ -165,6 +167,8 @@ onUiLoaded(async () => {
     static select() {
       const $ = document.createElement('select');
       $.classList.add('gr-box', 'gr-input');
+      $.style['background'] = 'var(--input-background-fill)';
+      $.style['color'] = 'var(--body-text-color)';
       return $;
     }
 
