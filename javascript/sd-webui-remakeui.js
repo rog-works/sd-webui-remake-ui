@@ -1250,9 +1250,9 @@ onUiLoaded(async () => {
       $path.style['text-overflow'] = 'ellipsis';
 
       // sortPath: '/stable-diffution/models/lora/path/to'
-      // sortName: 'lora_name.safetensors'
-      const loraDir = ($card.dataset.sortPath || '').split('/').slice(4).join('/');;
-      const loraName = ($card.dataset.sortName || '').split('.')[0];
+      // dataName: 'lora_name'
+      const loraDir = ($card.dataset.sortPath || '').split('/').slice(4).join('/');
+      const loraName = $card.dataset.name || '';
       const loraPath = [loraDir, loraName].join('/');
       const $actions = Helper.div();
       $actions.style['flex-basis'] = '30%';
