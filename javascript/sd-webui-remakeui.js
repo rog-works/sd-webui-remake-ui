@@ -1688,7 +1688,7 @@ onUiLoaded(async () => {
 
         // XXX 余りのエントリーはScript関連のエントリーとして扱う
         if (target.icon == I18n.t.scripts.script) {
-          const $bg = Finder.query('div', $overlay);
+          const $bg = Finder.query('div:nth-child(2)', $overlay);
           for (const $remain of $remains) {
             $bg.appendChild($remain);
           }
