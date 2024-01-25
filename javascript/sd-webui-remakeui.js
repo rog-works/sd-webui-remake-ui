@@ -1730,17 +1730,16 @@ onUiLoaded(async () => {
     makeButton(icon, $overlay, $enabler) {
       const $button = Helper.button();
       $button.textContent = icon;
-      $button.addEventListener('click', e => {
-        if (e.ctrlKey) {
-          if (('type' in $enabler) && $enabler.type === 'checkbox') {
-            $enabler.click();
-          } else {
-            // FIXME Dropdownは外部から操作不能なため一旦非対応
-            console.warn(`Not supported dropdown enabler. ${icon}`);
-          }
+      $button.addEventListener('dblclick', e => {
+        if (('type' in $enabler) && $enabler.type === 'checkbox') {
+          $enabler.click();
         } else {
-          Helper.shown($overlay, $overlay.style.display !== 'block');
+          // FIXME Dropdownは外部から操作不能なため一旦非対応
+          console.warn(`Not supported dropdown enabler. ${icon}`);
         }
+      });
+      $button.addEventListener('click', e => {
+        Helper.shown($overlay, $overlay.style.display !== 'block');
       });
       // @see NewLoraExecutor.handleCloseWithEsc
       this.modules.pain.addEventListener('keydown', e => {
