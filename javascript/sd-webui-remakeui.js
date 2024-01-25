@@ -1617,6 +1617,7 @@ onUiLoaded(async () => {
       const $parent = this.modules.resultImage;
       // XXX 直近影響は無いが、position属性の変更は表示崩れが起きる可能性大
       $parent.style.position = 'relative';
+      $parent.style.overflow = 'inherit';
       $parent.appendChild($container);
     }
 
