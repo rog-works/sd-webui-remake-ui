@@ -1253,7 +1253,7 @@ onUiLoaded(async () => {
       // dataName: 'lora_name'
       const loraDir = ($card.dataset.sortPath || '').split('/').slice(4).join('/');
       const loraName = $card.dataset.name || '';
-      const loraPath = [loraDir, loraName].join('/');
+      const loraPath = `${[loraDir, loraName].join('/')}.safetensors`;
       const $actions = Helper.div();
       $actions.style['flex-basis'] = '30%';
       $actions.appendChild(actionSwap(loraName));
