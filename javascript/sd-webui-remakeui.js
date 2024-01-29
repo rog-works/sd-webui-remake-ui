@@ -697,6 +697,13 @@ onUiLoaded(async () => {
     }
 
     exec() {}
+
+    /**
+     * @param {() => Promise<void>} untilLoaded
+     */
+    async execLazy(untilLoaded) {
+      this.exec();
+    }
   }
 
   class Txt2ImgTopExecutor extends Executor {
@@ -1009,6 +1016,15 @@ onUiLoaded(async () => {
       this.handleCloseWithEsc($overlay);
       this.handleOpen($overlay);
       this.alignOverlay($overlay);
+    }
+
+    /**
+     * @param {() => Promise<void>} untilLoaded
+     * @override
+     */
+    async execLazy(untilLoaded) {
+      await untilLoaded();
+      this.exec();
     }
 
     /**
@@ -2637,15 +2653,15 @@ onUiLoaded(async () => {
       AlignSettingsExecutor,
       // AlignTagSelectorExecutor,
       NewAspectToolExecutor,
-      NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
       AlignScriptEntriesExecutor,
       RemakeResultFooterExecutor,
       RemakeSettingTrackbarExecutor,
+      NewLoraExecutor,
     ];
     for (const ctor of txt2imgs) {
-      new ctor('txt2img').exec();
+      new ctor('txt2img').execLazy(waitUntilLoaded);
     }
 
     const img2imgs = [
@@ -2656,14 +2672,14 @@ onUiLoaded(async () => {
       Img2ImgAlignSettingsExecutor,
       // Img2ImgNewSettingsExecutor,
       NewAspectToolExecutor,
-      NewLoraExecutor,
       NewGenToolsExecutor,
       NewPromptToolsExecutor,
       AlignScriptEntriesExecutor,
       RemakeResultFooterExecutor,
+      NewLoraExecutor,
     ];
     for (const ctor of img2imgs) {
-      new ctor('img2img').exec();
+      new ctor('img2img').execLazy(waitUntilLoaded);
     }
 
     const others = [
@@ -2671,7 +2687,7 @@ onUiLoaded(async () => {
       HideFooterExecutor,
     ];
     for (const ctor of others) {
-      new ctor('txt2img').exec();
+      new ctor('txt2img').execLazy(waitUntilLoaded);
     }
 
     const civitaiHelpers = [
@@ -2679,12 +2695,11 @@ onUiLoaded(async () => {
       CivitaiHelperBulkDownloadExecutor,
     ];
     for (const ctor of civitaiHelpers) {
-      new ctor('txt2img').exec();
+      new ctor('txt2img').execLazy(waitUntilLoaded);
     }
 
     console.log('remake ui successfull!');
   }
 
-  await waitUntilLoaded();
   main();
 });
