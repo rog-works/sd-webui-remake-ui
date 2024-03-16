@@ -1233,6 +1233,7 @@ onUiLoaded(async () => {
         const $action = Helper.button();
         $action.textContent = I18n.t.lora.example;
         $action.addEventListener('click', e => {
+          this.modules.prompt.dispatchEvent(new Event('prompt:backup'));
           use_preview_prompt(e, 'lora', searchTerm);
         });
 
