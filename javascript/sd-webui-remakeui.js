@@ -430,6 +430,7 @@ onUiLoaded(async () => {
             subdir: 'Sub Folder',
             version: 'Version',
             status: 'Status',
+            newFolder: 'New Folder',
           },
           actions: {
             run: '▶️',
@@ -1902,6 +1903,7 @@ onUiLoaded(async () => {
       $headerRow.appendChild(Helper.tableHeaderCell(I18n.t.civitaiHelper.model.headers.subdir));
       $headerRow.appendChild(Helper.tableHeaderCell(I18n.t.civitaiHelper.model.headers.version));
       $headerRow.appendChild(Helper.tableHeaderCell(I18n.t.civitaiHelper.model.headers.status));
+      $headerRow.appendChild(Helper.tableHeaderCell(I18n.t.civitaiHelper.model.headers.newFolder));
       $header.appendChild($headerRow);
       $table.appendChild($header);
       $table.appendChild($body);
@@ -2119,7 +2121,7 @@ onUiLoaded(async () => {
       }
 
       /**
-       * @param {{baseUrl: string, path: string, subdir: string, version: string, status: string}} model
+       * @param {{baseUrl: string, path: string, subdir: string, version: string, status: string, newFolder: boolean}} model
        * @return {Promise<boolean>}
        */
       const infoDownload = async (model) => {
@@ -2137,7 +2139,7 @@ onUiLoaded(async () => {
       }
 
       /**
-       * @param {{baseUrl: string, path: string, subdir: string, version: string, status: string}} model
+       * @param {{baseUrl: string, path: string, subdir: string, version: string, status: string, newFolder: boolean}} model
        * @return {Promise<string>}
        */
       const modelDownload = async (model) => {
@@ -2146,11 +2148,15 @@ onUiLoaded(async () => {
         const $subdir = Finder.query('div.form > div:nth-child(5) textarea', $model);
         /** @type {HTMLInputElement} */ // @ts-ignore
         const $version = Finder.query('div.form > div:nth-child(3) input', $model);
+        /** @type {HTMLInputElement} */ // @ts-ignore
+        const $newFolder = Finder.query('div.form > div:nth-child(6) input', $model);
         $subdir.value = model.subdir;
         $version.value = model.version;
+        $newFolder.checked = model.newFolder;
         updateInput($subdir)
         // FIXME dropdownに対しての操作は無力化されるので無意味
         updateInput($version)
+        updateInput($newFolder)
         // FIXME
         await Core.sleep(10); // XXX DOM更新待ちのsleep
 
@@ -2174,7 +2180,7 @@ onUiLoaded(async () => {
       };
 
       /**
-       * @param {{baseUrl: string, path: string, subdir: string, version: string, status: string}} model
+       * @param {{baseUrl: string, path: string, subdir: string, version: string, status: string, newFolder: boolean}} model
        * @return {Promise<string>}
        */
       const download = async model => {
@@ -2197,18 +2203,20 @@ onUiLoaded(async () => {
       while(true) {
         /** @type {NodeListOf<HTMLTableRowElement>} */ // @ts-ignore
         const $rows = Finder.queryAll('tbody > tr', $table);
-        /** @type {{$baseUrl: HTMLElement, $path: HTMLElement, $subdir: HTMLSelectElement, $version: HTMLTextAreaElement, $status: HTMLSelectElement} | null} */
+        /** @type {{$baseUrl: HTMLElement, $path: HTMLElement, $subdir: HTMLTextAreaElement, $version: HTMLTextAreaElement, $status: HTMLSelectElement, $newFolder: HTMLInputElement} | null} */
         let target = null;
         for (const $row of $rows) {
-          const [$baseUrl, $path, $subdir_, $version_, $status_] = $row.cells;
-          /** @type {HTMLSelectElement} */ // @ts-ignore
-          const $subdir = Finder.query('select', $subdir_);
+          const [$baseUrl, $path, $subdir_, $version_, $status_, $newFolder_] = $row.cells;
+          /** @type {HTMLTextAreaElement} */ // @ts-ignore
+          const $subdir = Finder.query('textarea', $subdir_);
           /** @type {HTMLTextAreaElement} */ // @ts-ignore
           const $version = Finder.query('textarea', $version_);
           /** @type {HTMLSelectElement} */ // @ts-ignore
           const $status = Finder.query('select', $status_);
+          /** @type {HTMLInputElement} */ // @ts-ignore
+          const $newFolder = Finder.query('input', $newFolder_);
           if ($status.value === I18n.t.civitaiHelper.model.statuses.standby) {
-            target = {$baseUrl, $path, $subdir, $version, $status};
+            target = {$baseUrl, $path, $subdir, $version, $status, $newFolder};
             break;
           }
         };
@@ -2223,6 +2231,7 @@ onUiLoaded(async () => {
           subdir: target.$subdir.value,
           version: target.$version.value,
           status: target.$status.value,
+          newFolder: target.$newFolder.checked,
         };
         Helper.selected(target.$status, I18n.t.civitaiHelper.model.statuses.processing);
         const result = await download(model);
@@ -2272,7 +2281,7 @@ onUiLoaded(async () => {
 
     /**
      * @param {HTMLTableElement} $table
-     * @param {{url: string, subdir: string, version: string}} model
+     * @param {{url: string, subdir: string, version: string, newFolder?: boolean}} model
      * @private
      */
     addReserve($table, model) {
@@ -2283,6 +2292,7 @@ onUiLoaded(async () => {
       const makeSubdirSelect = (initialValue) => {
         const subdirs = Array.from(Finder.queryAll('button', this.modules.loraSubDirs)).map($subdir => ($subdir.textContent || '').trim()).sort();
         const $select = Helper.select();
+        $select.style.width = '100%';
         let selected = false;
         for (const orgSubdir of subdirs) {
           const subdir_ = orgSubdir.split('/').filter(word => word.length).join('/');
@@ -2313,7 +2323,20 @@ onUiLoaded(async () => {
 
       const $subdir = Helper.tableCell();
       const [subdirExists, $subdirSelect] = makeSubdirSelect(model.subdir);
+      const $subdirText = Helper.textarea();
+      $subdirText.style.width = '90%';
+      $subdirText.style.height = '30px';
+      $subdirText.style.position = 'relative';
+      $subdirText.style.left = '6px';
+      $subdirText.style.top = '-36px';
+      $subdirText.style.padding = 'none';
+      $subdirText.style.resize = 'none';
+      $subdirText.style.border = 'none';
+      $subdirSelect.addEventListener('change', () => {
+        $subdirText.value = $subdirSelect.value;
+      });
       $subdir.appendChild($subdirSelect);
+      $subdir.appendChild($subdirText);
 
       const $version = Helper.tableCell();
       const $versionText = Helper.textbox();
@@ -2331,12 +2354,23 @@ onUiLoaded(async () => {
       $select.value = baseUrl && subdirExists ? I18n.t.civitaiHelper.model.statuses.standby : I18n.t.civitaiHelper.model.statuses.error;
       $status.appendChild($select);
 
+      const $newFolder = Helper.tableCell();
+      const $newFolderCheckbox = Helper.checkbox();
+      $newFolderCheckbox.checked = model.newFolder || $newFolderCheckbox.checked;
+      $newFolderCheckbox.addEventListener('click', () => {
+        if ($newFolderCheckbox.checked && $select.value === I18n.t.civitaiHelper.model.statuses.error) {
+          Helper.selected($select, I18n.t.civitaiHelper.model.statuses.standby);
+        }
+      });
+      $newFolder.appendChild($newFolderCheckbox);
+
       const $row = Helper.tableRow();
       $row.appendChild($baseUrl);
       $row.appendChild($path);
       $row.appendChild($subdir);
       $row.appendChild($version);
       $row.appendChild($status);
+      $row.appendChild($newFolder);
 
       const $body = Finder.query('tbody', $table);
       $body.appendChild($row);
@@ -2346,23 +2380,26 @@ onUiLoaded(async () => {
      * @param {HTMLTableElement} $table
      */
     saveStorage($table) {
-      /** @type {{url: string, subdir: string, version: string}[]} */
+      /** @type {{url: string, subdir: string, version: string, newFolder: boolean}[]} */
       const items = [];
       for (const $row of $table.rows) {
-        const [$baseUrl, $path, $subdir_, $version_, $status_] = $row.cells;
+        const [$baseUrl, $path, $subdir_, $version_, $status_, $newFolder_] = $row.cells;
         if ($baseUrl.textContent === I18n.t.civitaiHelper.model.headers.baseUrl) {
           continue;
         }
 
-        /** @type {HTMLSelectElement} */ // @ts-ignore
-        const $subdir = Finder.query('select', $subdir_);
+        /** @type {HTMLTextAreaElement} */ // @ts-ignore
+        const $subdir = Finder.query('textarea', $subdir_);
         /** @type {HTMLTextAreaElement} */ // @ts-ignore
         const $version = Finder.query('textarea', $version_);
+        /** @type {HTMLInputElement} */ // @ts-ignore
+        const $newFolder = Finder.query('input', $newFolder_);
         items.push({
           url: $baseUrl.textContent || '',
           subdir: $subdir.value,
           version: $version.value,
-        });
+          newFolder: $newFolder.checked,
+        })
       }
 
       localStorage.setItem('bulk-download-items', JSON.stringify(items));
@@ -2374,10 +2411,10 @@ onUiLoaded(async () => {
     loadStorage($table) {
       const data = localStorage.getItem('bulk-download-items');
       if (data) {
-        /** @type {{url: string, subdir: string, version: string}[]} */
+        /** @type {{url: string, subdir: string, version: string, newFolder: boolean}[]} */
         const items = JSON.parse(data);
         for (const item of items) {
-          this.addReserve($table, {url: item.url, subdir: item.subdir, version: item.version});
+          this.addReserve($table, {url: item.url, subdir: item.subdir, version: item.version, newFolder: item.newFolder});
         }
       }
     }
